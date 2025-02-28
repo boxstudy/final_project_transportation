@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from os import abort
 
 data_path = r"../data"
@@ -64,19 +65,88 @@ class Train:
             self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.start, "arrival_place": self.end}]]
 
     def create_time(self):
-        if len(self.path) == 1:
-            
-            for i in self.path:
-            conn = get_db_connection(data_path + "/Express_Train/" + i["name"])
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM train WHERE 車站 = ?", (i["arrival_place"],))
-            result = cursor.fetchone()
-            print(result)
-            # i["arrival_time"] = result["時間"]
-            # cursor.execute("SELECT * FROM train WHERE 車站 = ?", i["departure_place"])
-            # result = cursor.fetchone()
-            # i["departure_time"] = result["時間"]
-            conn.close()
+        if len(self.paths) == 1: #不需轉車
+            self.paths = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
+        else: #需轉車
+            transfer_station = self.paths[0]["arrival_place"]
+            first_leg_file = self.paths[0]["file"]
+            second_leg_file = self.paths[1]["file"]
+
+            # 取得第一段所有列車
+            first_leg_trains = self.find_best_train(first_leg_file, self.start, transfer_station)
+            best_paths = []
+
+            for first_leg in first_leg_trains:
+                first_arrival_time = first_leg["arrival_time"]
+
+                # 取得所有可銜接的第二段列車
+                second_leg_trains = self.find_best_train(second_leg_file, transfer_station, self.end, first_arrival_time)
+
+                if second_leg_trains:
+                    best_paths.append([first_leg, second_leg_trains[0]])  # 選擇第二段最快的列車
+
+    def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
+        conn = get_db_connection(self.data_path + db_file)
+        cursor = conn.cursor()
+
+        # 取得所有列車編號
+        cursor.execute("PRAGMA table_info(train);")
+        columns = [col[1] for col in cursor.fetchall() if col[1] != "車站"]
+
+        available_trains = []
+
+        for train_no in columns:
+            query = f"""
+            SELECT t1.車站 AS 出發站, t1."{train_no}" AS 出發時間, 
+                t2.車站 AS 到達站, t2."{train_no}" AS 到達時間
+            FROM train t1
+            JOIN train t2 ON t1."{train_no}" IS NOT NULL AND t2."{train_no}" IS NOT NULL
+            WHERE t1.車站 = ? AND t2.車站 = ?
+            AND t1."{train_no}" < t2."{train_no}"
+            ORDER BY t1."{train_no}";
+            """
+            cursor.execute(query, (departure_station, arrival_station))
+            results = cursor.fetchall()
+
+            for row in results:
+                train_data = {
+                    "transportation_name": train_no,
+                    "departure_station": row[0],
+                    "departure_time": row[1],
+                    "arrival_station": row[2],
+                    "arrival_time": row[3],
+                }
+
+                # 將時間字串轉換為 datetime 對象
+                departure_time = datetime.strptime(train_data["departure_time"], "%H:%M")
+                min_departure_time_datatime = datetime.strptime(min_departure_time, "%H:%M")
+
+                # 如果是轉乘，確保出發時間比上一段晚
+                if min_departure_time is None or departure_time > min_departure_time_datatime:
+                    available_trains.append(train_data)
+
+        conn.close()
+
+        if not available_trains:
+            return []
+
+        # 找到最快火車
+        fastest_train = min(available_trains, key=lambda x: x["departure_time"])
+
+        #找到最便宜火車（優先順序：莒光號 > 自強號 > 其他）
+        cheap_train = None
+        for priority in ["莒光號", "自強號"]:
+            for train in available_trains:
+                if priority in train["transportation_name"]:
+                    cheap_train = train
+                    break
+            if cheap_train:
+                break
+
+        if cheap_train is None:
+            cheap_train = fastest_train
+
+        return [fastest_train, cheap_train]
 
     def create_cost(self):
         for path_i in range(len(self.paths)):
