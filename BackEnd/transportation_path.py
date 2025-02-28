@@ -65,25 +65,30 @@ class Train:
             self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.start, "arrival_place": self.end}]]
 
     def create_time(self):
-        if len(self.paths) == 1: #不需轉車
-            self.paths = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
-        else: #需轉車
-            transfer_station = self.paths[0]["arrival_place"]
-            first_leg_file = self.paths[0]["file"]
-            second_leg_file = self.paths[1]["file"]
+        if len(self.paths) == 1:  # 不需轉車
+            fastest_train, cheapest_train = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
+            self.paths *= 2  # fast path, cheap path
+            self.paths[0][0].update(fastest_train)
+            self.paths[1][0].update(cheapest_train)
+        else:  # 需轉車
+            transfer_station = self.paths[0][0]["arrival_place"]
+            first_leg_file = self.paths[0][0]["file"]
+            second_leg_file = self.paths[0][1]["file"]
 
             # 取得第一段所有列車
-            first_leg_trains = self.find_best_train(first_leg_file, self.start, transfer_station)
-            best_paths = []
+            first_leg_fastest_train, first_leg_cheapest_train = self.find_best_train(first_leg_file, self.start, transfer_station)
 
-            for first_leg in first_leg_trains:
-                first_arrival_time = first_leg["arrival_time"]
+            # 取得所有可銜接的第二段列車(最快)
+            second_leg_fastest_train, _ = self.find_best_train(second_leg_file, transfer_station, self.end, first_leg_fastest_train["arrival_time"])
 
-                # 取得所有可銜接的第二段列車
-                second_leg_trains = self.find_best_train(second_leg_file, transfer_station, self.end, first_arrival_time)
+            # 取得所有可銜接的第二段列車(最便宜)
+            _, second_leg_cheapest_train = self.find_best_train(second_leg_file, transfer_station, self.end, first_leg_cheapest_train["arrival_time"])
 
-                if second_leg_trains:
-                    best_paths.append([first_leg, second_leg_trains[0]])  # 選擇第二段最快的列車
+            self.paths *= 2  # fast path, cheap path
+            self.paths[0][0].update(first_leg_fastest_train)
+            self.paths[0][1].update(second_leg_fastest_train)
+            self.paths[1][0].updata(first_leg_cheapest_train)
+            self.paths[1][1].update(second_leg_cheapest_train)
 
     def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
         conn = get_db_connection(self.data_path + db_file)
@@ -128,25 +133,25 @@ class Train:
         conn.close()
 
         if not available_trains:
-            return []
+            return None
 
         # 找到最快火車
         fastest_train = min(available_trains, key=lambda x: x["departure_time"])
 
         #找到最便宜火車（優先順序：莒光號 > 自強號 > 其他）
-        cheap_train = None
+        cheapest_train = None
         for priority in ["莒光號", "自強號"]:
             for train in available_trains:
                 if priority in train["transportation_name"]:
-                    cheap_train = train
+                    cheapest_train = train
                     break
-            if cheap_train:
+            if cheapest_train:
                 break
 
-        if cheap_train is None:
-            cheap_train = fastest_train
+        if cheapest_train is None:
+            cheapest_train = fastest_train
 
-        return [fastest_train, cheap_train]
+        return fastest_train, cheapest_train
 
     def create_cost(self):
         for path_i in range(len(self.paths)):
@@ -178,8 +183,8 @@ class Train:
 
     def create(self):
         self.create_path()
-        # self.create_time()
-        # self.create_cost()
+        self.create_time()
+        self.create_cost()
         return self.paths
 
 class TransportationPath:
