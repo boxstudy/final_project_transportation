@@ -89,10 +89,10 @@ class Train:
                                     (SELECT 距離 FROM train WHERE 車站 = ?) AS 出發距離,
                                     (SELECT 距離 FROM train WHERE 車站 = ?) AS 到達距離
                                 """, (route.get("departure_place"), route.get("arrival_place")))
-                departure_place, arrival_distance = cursor.fetchone()
+                departure_distance, arrival_distance = cursor.fetchone()
                 conn.close()
 
-                distance = max(departure_place - arrival_distance, 10)
+                distance = max(arrival_distance - departure_distance, 10)
                 transportation_name = route.get("transportation_name")
                 cost = 0
                 for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27)):
