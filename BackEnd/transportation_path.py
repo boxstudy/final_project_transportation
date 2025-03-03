@@ -26,7 +26,7 @@ class Train:
 
     # 找尋車站在哪個表之中
     def find_table(self, station_name, file_name=None):
-        files = ["西部往北（潮州→基隆）.db", "東部往北（臺東→樹林）.db", "南迴往西（臺東→枋寮→新左營）.db"]
+        files = ["西部往北潮州基隆.db", "東部往北臺東樹林.db", "南迴往西臺東枋寮新左營.db"]
 
         if file_name is not None:
             i = files.index(file_name)
@@ -50,9 +50,9 @@ class Train:
         file_set = frozenset({file1, file2})
 
         transfer_points = {
-            frozenset({"西部往北（潮州→基隆）.db", "東部往北（臺東→樹林）.db"}): "臺北",
-            frozenset({"東部往北（臺東→樹林）.db", "南迴往西（臺東→枋寮→新左營）.db"}): "臺東",
-            frozenset({"西部往北（潮州→基隆）.db", "南迴往西（臺東→枋寮→新左營）.db"}): "高雄"
+            frozenset({"西部往北潮州基隆.db", "東部往北臺東樹林.db"}): "臺北",
+            frozenset({"東部往北臺東樹林.db", "南迴往西臺東枋寮新左營.db"}): "臺東",
+            frozenset({"西部往北潮州基隆.db", "南迴往西臺東枋寮新左營.db"}): "高雄"
         }
 
         if file_set in transfer_points:
