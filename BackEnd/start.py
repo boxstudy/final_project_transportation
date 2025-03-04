@@ -10,9 +10,8 @@ def data_recommend(from_place, to_place):
     return val
 
 if __name__ == '__main__':
-    # try:
+
     v = path.get("2024/5/4-10:00", "潮州", "基隆")
     print(v)
-    # except Exception as e:
-    #     print(f"Error getting transportation path: {e}")
+
     app.run(threaded=True, port=8888, debug=True, host='0.0.0.0')

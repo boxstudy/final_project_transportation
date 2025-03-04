@@ -44,28 +44,56 @@ class Train:
 
         raise ValueError(f"{station_name} is not found in any of the databases")
 
+    def check_route_availability(self, db_file, start_station, end_station):
+        """
+        檢查是否存在一條有效的路線從 start_station 到 end_station。
+        """
+        conn = get_db_connection(self.data_path + db_file)
+        cursor = conn.cursor()
+
+        try:
+            # 獲取起點站和終點站的時間資料
+            cursor.execute(f"""SELECT 車站 FROM train 
+                                WHERE 車站 IN ('{start_station}', '{end_station}') 
+                                ORDER BY 車站;""")
+            records = cursor.fetchone()
+            return records == start_station
+        finally:
+            conn.close()
+
     def create_path(self):
         file1= self.find_table(self.start)
         file2 = self.find_table(self.end, file1)
         file_set = frozenset({file1, file2})
 
         transfer_points = {
-            frozenset({"西部往北潮州基隆.db", "東部往北臺東樹林.db"}): "臺北",
+            frozenset({"西部往北潮州基隆.db", "東部往北臺東樹林.db"}): "台北",
             frozenset({"東部往北臺東樹林.db", "南迴往西臺東枋寮新左營.db"}): "臺東",
             frozenset({"西部往北潮州基隆.db", "南迴往西臺東枋寮新左營.db"}): "高雄"
         }
 
+        other_direction = {"西部往北潮州基隆.db": "西部往南基隆潮州.db",
+                           "東部往北臺東樹林.db": "東部往南樹林臺東.db",
+                           "南迴往西臺東枋寮新左營.db": "南迴往東新左營枋寮臺東.db"}
+
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
+            if self.check_route_availability(file1, self.start, transfer_station):
+                file1 = other_direction[file1]
+            if self.check_route_availability(file2, transfer_station, self.end):
+                file2 = other_direction[file2]
+
             self.paths = [[
-                {"type": "Express_Train", "file": file1, "departure_place": self.start,       "arrival_place": transfer_station},
-                {"type": "Express_Train", "file": file2, "departure_place": transfer_station, "arrival_place": self.end}
+                {"type": "Express_Train", "file": file1, "departure_place": self.start,
+                 "arrival_place": transfer_station},
+                {"type": "Express_Train", "file": file2, "departure_place": transfer_station,
+                 "arrival_place": self.end}
             ]]
         else:
             self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.start, "arrival_place": self.end}]]
 
     def create_time(self):
-        if len(self.paths) == 1:  # 不需轉車
+        if len(self.paths[0]) == 1:  # 不需轉車
             fastest_train, cheapest_train = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
             self.paths *= 2  # fast path, cheap path
             self.paths[0][0].update(fastest_train)
@@ -114,7 +142,8 @@ class Train:
                           AND t2."{train_no}" IS NOT NULL
             WHERE t1.車站 = ? 
               AND t2.車站 = ?
-              AND t1."{train_no}" < t2."{train_no}"
+              AND strftime('%H:%M', t1."{train_no}") < strftime('%H:%M', t2."{train_no}")
+--            #AND t1."{train_no}" < t2."{train_no}"
             ORDER BY t1."{train_no}";
             """
             cursor.execute(query, (departure_station, arrival_station))
@@ -184,7 +213,7 @@ class Train:
                 if cost == 0:
                     raise ValueError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
-                route.update({"cost": cost})
+                route.update({"cost": round(cost)})
 
 
 
