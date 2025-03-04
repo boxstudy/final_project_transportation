@@ -101,7 +101,7 @@ class Train:
 
         # 取得所有列車編號
         cursor.execute("PRAGMA table_info(train);")
-        columns = [col[1] for col in cursor.fetchall() if col[1] != "車站"]
+        columns = [col[1] for col in cursor.fetchall() if col[1] not in ("車站", "距離")]
 
         available_trains = []
 
@@ -115,8 +115,6 @@ class Train:
             WHERE t1.車站 = ? 
               AND t2.車站 = ?
               AND t1."{train_no}" < t2."{train_no}"
-              AND t1."{train_no}" <> '距離'
-              AND t2."{train_no}" <> '距離'
             ORDER BY t1."{train_no}";
             """
             cursor.execute(query, (departure_station, arrival_station))
