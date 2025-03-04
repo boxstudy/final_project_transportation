@@ -91,6 +91,11 @@ class Train:
             self.paths[1][1].update(second_leg_cheapest_train)
 
     def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
+        if min_departure_time is None:
+            date_obj = datetime.strptime(self.departure_time, '%Y/%m/%d-%H:%M')
+            min_departure_time = date_obj.strftime('%H:%M')
+        min_departure_time_datatime = datetime.strptime(min_departure_time, "%H:%M")
+
         conn = get_db_connection(self.data_path + db_file)
         cursor = conn.cursor()
 
@@ -103,11 +108,15 @@ class Train:
         for train_no in columns:
             query = f"""
             SELECT t1.車站 AS 出發站, t1."{train_no}" AS 出發時間, 
-                t2.車站 AS 到達站, t2."{train_no}" AS 到達時間
+                   t2.車站 AS 到達站, t2."{train_no}" AS 到達時間
             FROM train t1
-            JOIN train t2 ON t1."{train_no}" IS NOT NULL AND t2."{train_no}" IS NOT NULL
-            WHERE t1.車站 = ? AND t2.車站 = ?
-            AND t1."{train_no}" < t2."{train_no}"
+            JOIN train t2 ON t1."{train_no}" IS NOT NULL 
+                          AND t2."{train_no}" IS NOT NULL
+            WHERE t1.車站 = ? 
+              AND t2.車站 = ?
+              AND t1."{train_no}" < t2."{train_no}"
+              AND t1."{train_no}" <> '距離'
+              AND t2."{train_no}" <> '距離'
             ORDER BY t1."{train_no}";
             """
             cursor.execute(query, (departure_station, arrival_station))
@@ -124,10 +133,10 @@ class Train:
 
                 # 將時間字串轉換為 datetime 對象
                 departure_time = datetime.strptime(train_data["departure_time"], "%H:%M")
-                min_departure_time_datatime = datetime.strptime(min_departure_time, "%H:%M")
+
 
                 # 如果是轉乘，確保出發時間比上一段晚
-                if min_departure_time is None or departure_time > min_departure_time_datatime:
+                if departure_time > min_departure_time_datatime:
                     available_trains.append(train_data)
 
         conn.close()
