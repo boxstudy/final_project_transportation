@@ -174,7 +174,7 @@ class Train:
                 departure_distance, arrival_distance = cursor.fetchone()
                 conn.close()
 
-                distance = max(arrival_distance - departure_distance, 10)
+                distance = max(float(arrival_distance) - float(departure_distance), 10)
                 transportation_name = route.get("transportation_name")
                 cost = 0
                 for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27)):
