@@ -18,15 +18,18 @@ def get_db_connection(data_path):
 """
 class Train:
     def __init__(self, departure_time, start, end):
-        self.departure_time = departure_time
-        self.start = start
-        self.end = end
+        self.__departure_time = departure_time
+        self.__start = start
+        self.__end = end
         self.data_path = data_path + "/Express_Train/"
         self.paths = [[]]
+        self.Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
+        self.Taidong_Shulin = {"to": "東部往北（臺東→樹林）.db", "from": "東部往南（樹林→臺東).db"}
+        self.Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
 
     # 找尋車站在哪個表之中
     def find_table(self, station_name, file_name=None):
-        files = ["西部往北潮州基隆.db", "東部往北臺東樹林.db", "南迴往西臺東枋寮新左營.db"]
+        files = [self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]]
 
         if file_name is not None:
             i = files.index(file_name)
@@ -51,50 +54,49 @@ class Train:
         conn = get_db_connection(self.data_path + db_file)
         cursor = conn.cursor()
 
-        try:
-            # 獲取起點站和終點站的時間資料
-            cursor.execute(f"""SELECT 車站 FROM train 
-                                WHERE 車站 IN ('{start_station}', '{end_station}') 
-                                ORDER BY 車站;""")
-            records = cursor.fetchone()
-            return records == start_station
-        finally:
-            conn.close()
+        cursor.execute(f"""SELECT 車站 FROM train 
+                            WHERE 車站 IN ('{start_station}', '{end_station}') 
+                            ORDER BY 車站;""")
+        records = cursor.fetchone()
+        return records == start_station
 
     def create_path(self):
-        file1= self.find_table(self.start)
-        file2 = self.find_table(self.end, file1)
+        file1= self.find_table(self.__start)
+        file2 = self.find_table(self.__end, file1)
         file_set = frozenset({file1, file2})
 
         transfer_points = {
-            frozenset({"西部往北潮州基隆.db", "東部往北臺東樹林.db"}): "台北",
-            frozenset({"東部往北臺東樹林.db", "南迴往西臺東枋寮新左營.db"}): "臺東",
-            frozenset({"西部往北潮州基隆.db", "南迴往西臺東枋寮新左營.db"}): "高雄"
+            frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "台北",
+            frozenset({self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]}): "臺東",
+            frozenset({self.Caozhou_Jilong["to"], self.Taidong_Xinzuoying["to"]}): "高雄"
         }
 
-        other_direction = {"西部往北潮州基隆.db": "西部往南基隆潮州.db",
-                           "東部往北臺東樹林.db": "東部往南樹林臺東.db",
-                           "南迴往西臺東枋寮新左營.db": "南迴往東新左營枋寮臺東.db"}
+        reverse_direction = {self.Caozhou_Jilong["to"]: self.Caozhou_Jilong["from"],
+                           self.Taidong_Shulin["to"]: self.Taidong_Shulin["from"],
+                           self.Caozhou_Jilong["to"]: self.Taidong_Shulin["from"]}
 
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
-            if self.check_route_availability(file1, self.start, transfer_station):
-                file1 = other_direction[file1]
-            if self.check_route_availability(file2, transfer_station, self.end):
-                file2 = other_direction[file2]
+
+            if self.check_route_availability(file1, self.__start, transfer_station):
+                file1 = reverse_direction[file1]
+            if self.check_route_availability(file2, transfer_station, self.__end):
+                file2 = reverse_direction[file2]
 
             self.paths = [[
-                {"type": "Express_Train", "file": file1, "departure_place": self.start,
+                {"type": "Express_Train", "file": file1, "departure_place": self.__start,
                  "arrival_place": transfer_station},
                 {"type": "Express_Train", "file": file2, "departure_place": transfer_station,
-                 "arrival_place": self.end}
+                 "arrival_place": self.__end}
             ]]
         else:
-            self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.start, "arrival_place": self.end}]]
+            self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.__start,
+                            "arrival_place": self.__end}
+            ]]
 
     def create_time(self):
         if len(self.paths[0]) == 1:  # 不需轉車
-            fastest_train, cheapest_train = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
+            fastest_train, cheapest_train = self.find_best_train(self.paths[0][0]["file"], self.__start, self.__end)
             self.paths *= 2  # fast path, cheap path
             self.paths[0][0].update(fastest_train)
             self.paths[1][0].update(cheapest_train)
@@ -104,13 +106,13 @@ class Train:
             second_leg_file = self.paths[0][1]["file"]
 
             # 取得第一段所有列車
-            first_leg_fastest_train, first_leg_cheapest_train = self.find_best_train(first_leg_file, self.start, transfer_station)
+            first_leg_fastest_train, first_leg_cheapest_train = self.find_best_train(first_leg_file, self.__start, transfer_station)
 
             # 取得所有可銜接的第二段列車(最快)
-            second_leg_fastest_train, _ = self.find_best_train(second_leg_file, transfer_station, self.end, first_leg_fastest_train["arrival_time"])
+            second_leg_fastest_train, _ = self.find_best_train(second_leg_file, transfer_station, self.__end, first_leg_fastest_train["arrival_time"])
 
             # 取得所有可銜接的第二段列車(最便宜)
-            _, second_leg_cheapest_train = self.find_best_train(second_leg_file, transfer_station, self.end, first_leg_cheapest_train["arrival_time"])
+            _, second_leg_cheapest_train = self.find_best_train(second_leg_file, transfer_station, self.__end, first_leg_cheapest_train["arrival_time"])
 
             self.paths *= 2  # fast path, cheap path
             self.paths[0][0].update(first_leg_fastest_train)
@@ -120,8 +122,7 @@ class Train:
 
     def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
         if min_departure_time is None:
-            date_obj = datetime.strptime(self.departure_time, '%Y/%m/%d-%H:%M')
-            min_departure_time = date_obj.strftime('%H:%M')
+            min_departure_time = datetime.strptime(self.__departure_time, '%Y/%m/%d-%H:%M').strftime('%H:%M')
         min_departure_time_datatime = datetime.strptime(min_departure_time, "%H:%M")
 
         conn = get_db_connection(self.data_path + db_file)
@@ -143,7 +144,7 @@ class Train:
             WHERE t1.車站 = ? 
               AND t2.車站 = ?
               AND strftime('%H:%M', t1."{train_no}") < strftime('%H:%M', t2."{train_no}")
---            #AND t1."{train_no}" < t2."{train_no}"
+--            AND t1."{train_no}" < t2."{train_no}"
             ORDER BY t1."{train_no}";
             """
             cursor.execute(query, (departure_station, arrival_station))
@@ -152,15 +153,14 @@ class Train:
             for row in results:
                 train_data = {
                     "transportation_name": train_no,
-                    "departure_station": row[0],
+                    # "departure_station": row[0],
                     "departure_time": row[1],
-                    "arrival_station": row[2],
+                    # "arrival_station": row[2],
                     "arrival_time": row[3],
                 }
 
                 # 將時間字串轉換為 datetime 對象
                 departure_time = datetime.strptime(train_data["departure_time"], "%H:%M")
-
 
                 # 如果是轉乘，確保出發時間比上一段晚
                 if departure_time > min_departure_time_datatime:
