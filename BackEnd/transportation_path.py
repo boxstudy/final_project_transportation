@@ -65,7 +65,7 @@ class Train:
         file_set = frozenset({file1, file2})
 
         transfer_points = {
-            frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "台北",
+            frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "臺北",
             frozenset({self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]}): "臺東",
             frozenset({self.Caozhou_Jilong["to"], self.Taidong_Xinzuoying["to"]}): "高雄"
         }
@@ -116,7 +116,7 @@ class Train:
             self.paths *= 2  # fast path, cheap path
             self.paths[0][0].update(first_leg_fastest_train)
             self.paths[0][1].update(second_leg_fastest_train)
-            self.paths[1][0].updata(first_leg_cheapest_train)
+            self.paths[1][0].update(first_leg_cheapest_train)
             self.paths[1][1].update(second_leg_cheapest_train)
 
     def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
@@ -169,12 +169,12 @@ class Train:
         conn.close()
 
         if not available_trains:
-            return None
+            raise ValueError("No trains available")
 
         # 找到最快火車
         fastest_train = min(available_trains, key=lambda x: x["departure_time"])
 
-        #找到最便宜火車（優先順序：莒光號 > 自強號 > 其他）
+        #找到最便宜火車（優先順序：莒光號 > 其他)
         cheapest_train = None
         for train in available_trains:
             if "莒光" in train["transportation_name"]:
