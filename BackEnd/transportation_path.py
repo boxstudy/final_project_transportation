@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime
-from os import abort
 
 data_path = r"../data"
 
@@ -56,9 +55,9 @@ class Train:
 
         cursor.execute(f"""SELECT 車站 FROM train 
                             WHERE 車站 IN ('{start_station}', '{end_station}') 
-                            ORDER BY 車站;""")
+                            ORDER BY rowid;""")
         records = cursor.fetchone()
-        return records == start_station
+        return records[0] == start_station
 
     def create_path(self):
         file1= self.find_table(self.__start)
@@ -78,9 +77,9 @@ class Train:
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
 
-            if self.check_route_availability(file1, self.__start, transfer_station):
+            if not self.check_route_availability(file1, self.__start, transfer_station):
                 file1 = reverse_direction[file1]
-            if self.check_route_availability(file2, transfer_station, self.__end):
+            if not self.check_route_availability(file2, transfer_station, self.__end):
                 file2 = reverse_direction[file2]
 
             self.paths = [[
@@ -141,11 +140,12 @@ class Train:
             FROM train t1
             JOIN train t2 ON t1."{train_no}" IS NOT NULL 
                           AND t2."{train_no}" IS NOT NULL
+                          AND t1."{train_no}" != '↓' 
+                          AND t2."{train_no}" != '↓' 
             WHERE t1.車站 = ? 
               AND t2.車站 = ?
-              AND strftime('%H:%M', t1."{train_no}") < strftime('%H:%M', t2."{train_no}")
---            AND t1."{train_no}" < t2."{train_no}"
             ORDER BY t1."{train_no}";
+
             """
             cursor.execute(query, (departure_station, arrival_station))
             results = cursor.fetchall()
@@ -162,7 +162,7 @@ class Train:
                 # 將時間字串轉換為 datetime 對象
                 departure_time = datetime.strptime(train_data["departure_time"], "%H:%M")
 
-                # 如果是轉乘，確保出發時間比上一段晚
+                # 確保出發時間比設定晚
                 if departure_time > min_departure_time_datatime:
                     available_trains.append(train_data)
 
@@ -176,12 +176,9 @@ class Train:
 
         #找到最便宜火車（優先順序：莒光號 > 自強號 > 其他）
         cheapest_train = None
-        for priority in ["莒光號", "自強號"]:
-            for train in available_trains:
-                if priority in train["transportation_name"]:
-                    cheapest_train = train
-                    break
-            if cheapest_train:
+        for train in available_trains:
+            if "莒光" in train["transportation_name"]:
+                cheapest_train = train
                 break
 
         if cheapest_train is None:
@@ -243,9 +240,7 @@ class TransportationPath:
         # Implement the logic to get the transportation path between two train station to the closest location to the target.
         train = Train(departure_time=start_date, start=from_place, end=to_place)
         train_paths = train.create()
-        for i in range(len(paths)):
-            for train_path in train_paths:
-                paths[i] += train_path
+        paths = train_paths
 
         # Implement the logic to get the transportation path from the train station to the closest location to the target.
 
