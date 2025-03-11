@@ -14,4 +14,4 @@ def data_recommend(time, from_place, to_place):
 
 if __name__ == '__main__':
 
-    app.run(threaded=True, port=8888, debug=True, host='0.0.0.0')
+    app.run(threaded=True, port=8888, host='0.0.0.0')
