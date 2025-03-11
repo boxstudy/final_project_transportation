@@ -46,10 +46,7 @@ class Train:
 
         raise ValueError(f"{station_name} is not found in any of the databases")
 
-    def check_route_availability(self, db_file, start_station, end_station):
-        """
-        檢查是否存在一條有效的路線從 start_station 到 end_station。
-        """
+    def check_route_direction(self, db_file, start_station, end_station):
         conn = get_db_connection(self.data_path + db_file)
         cursor = conn.cursor()
 
@@ -77,9 +74,9 @@ class Train:
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
 
-            if not self.check_route_availability(file1, self.__start, transfer_station):
+            if not self.check_route_direction(file1, self.__start, transfer_station):
                 file1 = reverse_direction[file1]
-            if not self.check_route_availability(file2, transfer_station, self.__end):
+            if not self.check_route_direction(file2, transfer_station, self.__end):
                 file2 = reverse_direction[file2]
 
             self.paths = [[
