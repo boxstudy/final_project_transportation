@@ -20,6 +20,7 @@ class HighSpadeRail(Transportation):
                         WHERE 車站 IN ('{start_station}', '{end_station}') 
                         ORDER BY rowid;""")
         records = cursor.fetchone()
+        conn.close()
         return records[0] == start_station
 
     def create_path(self):
@@ -90,9 +91,4 @@ class HighSpadeRail(Transportation):
                 records = cursor.fetchone()
 
                 route.update({"cost": round(records[0])})
-
-    def create(self):
-        self.create_path()
-        self.create_time()
-        self.create_cost()
-        return self.paths
+                conn.close()

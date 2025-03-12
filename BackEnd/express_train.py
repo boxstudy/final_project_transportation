@@ -43,6 +43,7 @@ class ExpressTrain(Transportation):
                             WHERE 車站 IN ('{start_station}', '{end_station}') 
                             ORDER BY rowid;""")
         records = cursor.fetchone()
+        conn.close()
         return records[0] == start_station
 
     def create_path(self):
