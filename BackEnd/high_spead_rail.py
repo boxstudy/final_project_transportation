@@ -1,16 +1,9 @@
-from click.types import BoolParamType
-
-from transportation_path import get_db_connection
-from transportation_path import data_path
+from transportation_path import Transportation, get_db_connection
 
 
-class HighSpadeRail:
+class HighSpadeRail(Transportation):
     def __init__(self, departure_time, start, end, discount, reserved):
-        self.departure_time = departure_time
-        self.__start = start
-        self.__end = end
-        self.data_path = data_path + "/High_Speed_Rail"
-        self.paths = [[]]
+        super().__init__(departure_time, start, end, "High_Speed_Rail/")
 
         self.discount = discount
         self.reserved_table = "reserved" if reserved is True else "non-reserved"
@@ -31,10 +24,10 @@ class HighSpadeRail:
 
     def create_path(self):
         file = self.ZuoYing_NanGang["to"]
-        if not self.check_route_direction(file, self.__start, self.__end):
+        if not self.check_route_direction(file, self.start, self.end):
             file = self.ZuoYing_NanGang["from"]
-        self.paths = [[{"type": "HighSpeedRail", "file": file, "departure_place": self.__start,
-                        "arrival_place": self.__end}]]
+        self.paths = [[{"type": "HighSpeedRail", "file": file, "departure_place": self.start,
+                        "arrival_place": self.end}]]
 
     def create_time(self):
         for path in self.paths:
@@ -53,8 +46,8 @@ class HighSpadeRail:
                 cursor.execute(f"""
                                 SELECT train_no FROM higtrail 
                                 WHERE train_no IN {available_trains} 
-                                AND "{self.__start}" IS NOT NULL AND "{self.__start}" != '↓' 
-                                AND "{self.__end}" IS NOT NULL AND "{self.__end}" != '↓'""")
+                                AND "{self.start}" IS NOT NULL AND "{self.start}" != '↓' 
+                                AND "{self.end}" IS NOT NULL AND "{self.end}" != '↓'""")
                 valid_trains = cursor.fetchall()
                 valid_trains = tuple(t[0] for t in valid_trains)
 
