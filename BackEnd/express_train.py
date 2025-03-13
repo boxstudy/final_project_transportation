@@ -8,7 +8,7 @@ from transportation_path import Transportation, get_db_connection
      台東→枋寮→新左營 x 樹林→台東 : 臺東
 """
 class ExpressTrain(Transportation):
-    def __init__(self, departure_time, start, end):
+    def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end, "Express_Train/")
 
         self.Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}

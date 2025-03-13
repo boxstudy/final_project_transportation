@@ -11,7 +11,7 @@ def get_db_connection(data_path):
     return conn
 
 class Transportation(ABC):
-    def __init__(self, departure_time, start, end, folder):
+    def __init__(self, departure_time: str, start: str, end: str, folder: str):
         self.departure_time = departure_time
         self.start = start
         self.end = end
@@ -42,7 +42,7 @@ class TransportationPath:
     def __init__(self):
         self.priority = [""]
 
-    def get(self, start_date, from_place, to_place):
+    def get(self, start_date: str, from_place: str, to_place: str):
         # path = [
         #         # path 1
         #         [{"type": "train", "transportation_name": "Train 201", "departure_place":"", "arrival_place":"", "departure_time": "2025/02/01-10:00", "arrival_time": "2025/02/01-10:30", "cost": 100},

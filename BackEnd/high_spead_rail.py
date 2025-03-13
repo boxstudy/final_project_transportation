@@ -2,7 +2,7 @@ from transportation_path import Transportation, get_db_connection
 
 
 class HighSpadeRail(Transportation):
-    def __init__(self, departure_time, start, end, discount, reserved):
+    def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end, "High_Speed_Rail/")
 
         self.discount = discount
