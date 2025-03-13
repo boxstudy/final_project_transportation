@@ -16,7 +16,7 @@ class Transportation(ABC):
         self.start = start
         self.end = end
         self.data_path = r"../data/" + folder
-        self.paths = []
+        self.paths = [[]]
 
     @abstractmethod
     def create_path(self):
