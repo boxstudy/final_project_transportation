@@ -1,46 +1,10 @@
-import sqlite3
-from abc import ABC, abstractmethod
-
 from express_train import ExpressTrain
 from high_spead_rail import HighSpadeRail
 
 
-def get_db_connection(data_path):
-    conn = sqlite3.connect(data_path)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-class Transportation(ABC):
-    def __init__(self, departure_time: str, start: str, end: str, folder: str):
-        self.departure_time = departure_time
-        self.start = start
-        self.end = end
-        self.data_path = r"../data/" + folder
-        self.paths = [[]]
-
-    @abstractmethod
-    def create_path(self):
-        pass
-
-    @abstractmethod
-    def create_time(self):
-        pass
-
-    @abstractmethod
-    def create_cost(self):
-        pass
-
-    def create(self):
-        self.create_path()
-        self.create_time()
-        self.create_cost()
-        return self.paths
-
-
-
 class TransportationPath:
     def __init__(self):
-        self.priority = [""]
+        pass
 
     def get(self, start_date: str, from_place: str, to_place: str):
         # path = [
@@ -53,13 +17,14 @@ class TransportationPath:
         # ]
         paths = [[]]
 
-        # Implement the logic to get the transportation path to the train station.
+        # high_speed_rail = HighSpadeRail(departure_time=start_date, start=from_place, end=to_place, discount=True, reserved=True)
+        # high_speed_rail_paths = high_speed_rail.create()
+        # paths.extend(high_speed_rail_paths)
 
-        # Implement the logic to get the transportation path between two train station to the closest location to the target.
-        train = ExpressTrain(departure_time=start_date, start=from_place, end=to_place)
-        train_paths = train.create()
-        paths = train_paths
+        express_train = ExpressTrain(departure_time=start_date, start=from_place, end=to_place)
+        express_train_paths = express_train.create()
+        paths.append(express_train_paths)
 
-        # Implement the logic to get the transportation path from the train station to the closest location to the target.
+        HighSpadeRail_ExpressTrain_transfer_points = ["板橋", "台北", "新烏日", "新左營"]
 
         return paths

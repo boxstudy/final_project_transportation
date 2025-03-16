@@ -1,4 +1,4 @@
-from transportation_path import Transportation, get_db_connection
+from transportation import Transportation, get_db_connection
 
 
 class HighSpadeRail(Transportation):
