@@ -1,5 +1,6 @@
+import express_train
 from express_train import ExpressTrain
-from high_spead_rail import HighSpadeRail
+from high_speed_rail import HighSpadeRail
 
 
 class TransportationPath:
@@ -18,14 +19,31 @@ class TransportationPath:
         # ]
         paths = []
 
-        # high_speed_rail = HighSpadeRail(departure_time=start_date, start=from_place, end=to_place, discount=True, reserved=True)
-        # high_speed_rail_paths = high_speed_rail.create()
-        # paths.extend(high_speed_rail_paths)
+        high_speed_rail = HighSpadeRail(departure_time=start_date, start=from_place, end=to_place, discount=True, reserved=True)
+        high_speed_rail_paths = high_speed_rail.create()
+        if high_speed_rail_paths is not None:
+            paths.extend(high_speed_rail_paths)
 
         express_train = ExpressTrain(departure_time=start_date, start=from_place, end=to_place)
         express_train_paths = express_train.create()
-        paths.append(express_train_paths)
+        if express_train_paths is not None:
+            paths.append(express_train_paths)
 
-        HighSpadeRail_ExpressTrain_transfer_points = ["板橋", "台北", "新烏日", "新左營"]
+
+
+            HighSpadeRail_ExpressTrain_transfer_points = ["板橋", "台北", "新烏日", "新左營"]
+            for express_train_path in express_train_paths:
+                for part in express_train_path:
+                    if part['file'] == express_train.Caozhou_Jilong.values():
+                        # 先獲取兩班車與transfer_points，會落在哪個位置，
+                        # 如果都在 "板橋" 往北，"新左營" 往南，則不考慮，
+                        # ! 如果獲取兩班車中包含兩或以上transfer_point則考慮換車，
+                        pass
+
+
+
+        for i in range(len(paths)):
+            for j in range(len(paths[i])):
+                del paths[i][j]['file']
 
         return paths
