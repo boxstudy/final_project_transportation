@@ -107,7 +107,7 @@ class HighSpadeRail(Transportation):
                 cursor.execute(f"""
                                 SELECT {a}
                                 FROM {self.reserved_table}
-                                 WHERE 車站 IN ('{b}'))""")
+                                 WHERE 車站 IN ('{b}')""")
                 records = cursor.fetchone()
 
                 route.update({"cost": round(records[0])})
