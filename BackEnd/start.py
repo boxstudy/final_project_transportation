@@ -2,7 +2,7 @@ import sys
 from pprint import pprint
 
 import re
-from flask import Flask
+from flask import Flask, jsonify
 from transportation_path import TransportationPath
 
 app = Flask(__name__)
@@ -22,6 +22,16 @@ def data_recommend(time, from_place, to_place):
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
     return val
+
+@app.route('/data/json/recommend<time>_<from_place>_<to_place>', methods=['GET'])
+def data_json_recommend(time, from_place, to_place):
+    val = [[]]
+    try:
+        validate_time_format(time)
+        val = path.get(time, from_place, to_place)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+    return jsonify(val)
 
 if __name__ == '__main__':
 
