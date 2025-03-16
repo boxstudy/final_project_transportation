@@ -107,9 +107,9 @@ class ExpressTrain(Transportation):
             self.paths[1][1].update(second_leg_cheapest_train)
 
     def find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
-        date_part, time_part = self.departure_time.split('-')
+        date_part, time_part = self.departure_time.split(' ')
         if min_departure_time is not None:
-            time_part = datetime.strptime(self.departure_time, '%Y/%m/%d-%H:%M').strftime('%H:%M')
+            time_part = datetime.strptime(self.departure_time, '%Y-%m-%d %H:%M').strftime('%H:%M')
         min_departure_time_datatime = datetime.strptime(time_part, "%H:%M")
 
         conn = get_db_connection(self.data_path + db_file)
@@ -152,13 +152,13 @@ class ExpressTrain(Transportation):
 
                 # 確保出發時間比設定晚
                 if departure_time > min_departure_time_datatime:
-                    train_data["departure_time"] = date_part + "-" + train_data["departure_time"]
+                    train_data["departure_time"] = date_part + " " + train_data["departure_time"]
                     if departure_time > datetime.strptime(train_data["arrival_time"], "%H:%M"):
-                        date = datetime.strptime(date_part, "%Y/%m/%d")
+                        date = datetime.strptime(date_part, "%Y-%m-%d")
                         date += timedelta(days=1)
-                        train_data["arrival_time"] = date.strftime("%H:%M") + "-" + train_data["arrival_time"]
+                        train_data["arrival_time"] = date.strftime("%H:%M") + " " + train_data["arrival_time"]
                     else:
-                        train_data["arrival_time"] = date_part + "-" + train_data["arrival_time"]
+                        train_data["arrival_time"] = date_part + " " + train_data["arrival_time"]
                     available_trains.append(train_data)
 
         conn.close()
