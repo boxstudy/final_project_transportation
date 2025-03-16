@@ -1,4 +1,5 @@
 from transportation import Transportation, get_db_connection
+import datetime
 
 
 class HighSpadeRail(Transportation):
@@ -36,32 +37,51 @@ class HighSpadeRail(Transportation):
                 conn = get_db_connection(self.data_path + route.get("file"))
                 cursor = conn.cursor()
 
+                # 轉換日期為星期幾 (1 = 週一, 2 = 週二, ...)
+                weekday = datetime.datetime.strptime(self.travel_date, "%Y-%m-%d").weekday() + 1
+
                 # 查詢當天有行駛的車次
                 cursor.execute(f"""
-                                SELECT train_no FROM available_day 
-                                WHERE {self.travel_date} = 'T'""")
+                    SELECT train_no FROM available_day 
+                    WHERE D{weekday} = 'T'
+                """)
                 available_trains = cursor.fetchall()
-                available_trains = tuple(t[0] for t in available_trains)
+                available_trains = [t[0] for t in available_trains]
 
-                # 確保車次停靠出發站和目的地
+                # 若沒有可行車次，直接返回
+                if not available_trains:
+                    conn.close()
+                    return
+
+                # 檢查車次是否停靠出發站和目的地
+                available_trains_sql = f"({', '.join(map(str, available_trains))})"
                 cursor.execute(f"""
-                                SELECT train_no FROM higtrail 
-                                WHERE train_no IN {available_trains} 
-                                AND "{self.start}" IS NOT NULL AND "{self.start}" != '↓' 
-                                AND "{self.end}" IS NOT NULL AND "{self.end}" != '↓'""")
+                    SELECT train_no FROM higtrail 
+                    WHERE train_no IN {available_trains_sql} 
+                    AND "{self.start}" IS NOT NULL AND "{self.start}" != '↓' 
+                    AND "{self.end}" IS NOT NULL AND "{self.end}" != '↓'
+                """)
                 valid_trains = cursor.fetchall()
-                valid_trains = tuple(t[0] for t in valid_trains)
+                valid_trains = [t[0] for t in valid_trains]
+
+                # 若沒有符合條件的班次，直接返回
+                if not valid_trains:
+                    conn.close()
+                    return
 
                 # 查詢最近的符合條件的車次
+                valid_trains_sql = f"({', '.join(map(str, valid_trains))})"
                 cursor.execute(f"""
-                                SELECT train_no, departure_time, arrival_time 
-                                FROM higtrail 
-                                WHERE train_no IN {valid_trains} 
-                                AND departure_time >= '{self.departure_time}' 
-                                ORDER BY departure_time ASC 
-                                LIMIT 1""")
+                    SELECT train_no, departure_time, arrival_time 
+                    FROM higtrail 
+                    WHERE train_no IN {valid_trains_sql} 
+                    AND TIME(departure_time) >= TIME('{self.departure_time}') 
+                    ORDER BY TIME(departure_time) ASC 
+                    LIMIT 1
+                """)
                 record = cursor.fetchone()
 
+                # 若找到班次，更新路徑資訊
                 if record:
                     route.update({
                         "train_number": record[0],

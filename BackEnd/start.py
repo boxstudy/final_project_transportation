@@ -24,7 +24,7 @@ def data_recommend(time, from_place, to_place):
     return val
 
 if __name__ == '__main__':
-    val = data_recommend("2024/03/20-12:20", "臺北", "基隆")
+    val = data_recommend("2024-03-20 12:20", "臺北", "基隆")
     print(val)
 
     app.run(threaded=True, port=8888, host='0.0.0.0')
