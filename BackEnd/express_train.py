@@ -44,6 +44,8 @@ class ExpressTrain(Transportation):
                             ORDER BY rowid;""")
         records = cursor.fetchone()
         conn.close()
+        if records is None:
+            raise ValueError(f"Cannot find a valid route from {start_station} to {end_station} in {db_file}")
         return records[0] == start_station
 
     def create_path(self):
@@ -156,7 +158,7 @@ class ExpressTrain(Transportation):
                     if departure_time > datetime.strptime(train_data["arrival_time"], "%H:%M"):
                         date = datetime.strptime(date_part, "%Y-%m-%d")
                         date += timedelta(days=1)
-                        train_data["arrival_time"] = date.strftime("%H:%M") + " " + train_data["arrival_time"]
+                        train_data["arrival_time"] = date.strftime("%Y-%m-%d") + " " + train_data["arrival_time"]
                     else:
                         train_data["arrival_time"] = date_part + " " + train_data["arrival_time"]
                     available_trains.append(train_data)

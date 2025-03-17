@@ -27,7 +27,11 @@ class Transportation(ABC):
         pass
 
     def create(self):
-        self.create_path()
-        self.create_time()
-        self.create_cost()
+        try:
+            self.create_path()
+            self.create_time()
+            self.create_cost()
+        except Exception as e:
+            self.paths = None
+            print(e)
         return self.paths

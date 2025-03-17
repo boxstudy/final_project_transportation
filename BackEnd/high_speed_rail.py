@@ -22,6 +22,8 @@ class HighSpadeRail(Transportation):
                         ORDER BY rowid;""")
         records = cursor.fetchone()
         conn.close()
+        if records is None:
+            raise ValueError(f"Cannot find a valid route from {start_station} to {end_station} in {db_file}")
         return records[0] == start_station
 
     def create_path(self):
