@@ -51,14 +51,16 @@ class ExpressTrain(Transportation):
         return records[0] == start_station
 
     def create_path(self):
-        files1= self.find_table(self.start)
-        files2 = self.find_table(self.end)
-        same_file = files1.intersection(files2)
+        file1= self.find_table(self.start)
+        file2 = self.find_table(self.end)
+        same_file = file1.intersection(file2)
         if len(same_file):
             same_file = same_file.pop()
             file_set = frozenset({same_file, same_file})
         else:
-            file_set = frozenset({files1.pop(), files2.pop()})
+            file1 = file1.pop()
+            file2 = file2.pop()
+            file_set = frozenset({file1, file2})
 
         transfer_points = {
             frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "臺北",
@@ -73,19 +75,19 @@ class ExpressTrain(Transportation):
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
 
-            if not self.check_route_direction(files1, self.start, transfer_station):
-                files1 = reverse_direction[files1]
-            if not self.check_route_direction(files2, transfer_station, self.end):
-                files2 = reverse_direction[files2]
+            if not self.check_route_direction(file1, self.start, transfer_station):
+                file1 = reverse_direction[file1]
+            if not self.check_route_direction(file2, transfer_station, self.end):
+                file2 = reverse_direction[file2]
 
             self.paths = [[
-                {"type": "Express_Train", "file": files1, "departure_place": self.start,
+                {"type": "Express_Train", "file": file1, "departure_place": self.start,
                  "arrival_place": transfer_station},
-                {"type": "Express_Train", "file": files2, "departure_place": transfer_station,
+                {"type": "Express_Train", "file": file2, "departure_place": transfer_station,
                  "arrival_place": self.end}
             ]]
         else:
-            self.paths = [[{"type": "Express_Train", "file": files1, "departure_place": self.start,
+            self.paths = [[{"type": "Express_Train", "file": same_file, "departure_place": self.start,
                             "arrival_place": self.end}
             ]]
 
