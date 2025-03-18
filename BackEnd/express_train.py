@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from importlib.metadata import files
+
 from transportation import Transportation, get_db_connection
 
 """
@@ -16,13 +18,10 @@ class ExpressTrain(Transportation):
         self.Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
 
     # 找尋車站在哪個表之中
-    def find_table(self, station_name, file_name=None):
+    def find_table(self, station_name):
         files = [self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]]
 
-        if file_name is not None:
-            i = files.index(file_name)
-            if i != 0:
-                files[0], files[i] = files[i], files[0]
+        file_set = set()
 
         for file_name in files:
             conn = get_db_connection(self.data_path + file_name)
@@ -31,7 +30,10 @@ class ExpressTrain(Transportation):
             result = cursor.fetchone()
             conn.close()
             if result:
-                return file_name
+                file_set.add(file_name)
+
+        if len(file_set) != 0:
+            return file_set
 
         raise ValueError(f"{station_name} is not found in any of the databases")
 
@@ -49,9 +51,14 @@ class ExpressTrain(Transportation):
         return records[0] == start_station
 
     def create_path(self):
-        file1= self.find_table(self.start)
-        file2 = self.find_table(self.end, file1)
-        file_set = frozenset({file1, file2})
+        files1= self.find_table(self.start)
+        files2 = self.find_table(self.end)
+        same_file = files1.intersection(files2)
+        if len(same_file):
+            same_file = same_file.pop()
+            file_set = frozenset({same_file, same_file})
+        else:
+            file_set = frozenset({files1.pop(), files2.pop()})
 
         transfer_points = {
             frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "臺北",
@@ -66,19 +73,19 @@ class ExpressTrain(Transportation):
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
 
-            if not self.check_route_direction(file1, self.start, transfer_station):
-                file1 = reverse_direction[file1]
-            if not self.check_route_direction(file2, transfer_station, self.end):
-                file2 = reverse_direction[file2]
+            if not self.check_route_direction(files1, self.start, transfer_station):
+                files1 = reverse_direction[files1]
+            if not self.check_route_direction(files2, transfer_station, self.end):
+                files2 = reverse_direction[files2]
 
             self.paths = [[
-                {"type": "Express_Train", "file": file1, "departure_place": self.start,
+                {"type": "Express_Train", "file": files1, "departure_place": self.start,
                  "arrival_place": transfer_station},
-                {"type": "Express_Train", "file": file2, "departure_place": transfer_station,
+                {"type": "Express_Train", "file": files2, "departure_place": transfer_station,
                  "arrival_place": self.end}
             ]]
         else:
-            self.paths = [[{"type": "Express_Train", "file": file1, "departure_place": self.start,
+            self.paths = [[{"type": "Express_Train", "file": files1, "departure_place": self.start,
                             "arrival_place": self.end}
             ]]
 
