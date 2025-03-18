@@ -29,25 +29,52 @@ class TransportationPath:
         if express_train_paths is not None:
             paths.extend(express_train_paths)
 
-        # if high_speed_rail_paths and express_train_paths is not None:
-        #     HighSpadeRail_ExpressTrain_transfer_points = ["板橋", "台北", "新烏日", "新左營"]
-        #     sql_transfer_points = "','".join(HighSpadeRail_ExpressTrain_transfer_points)
-        #     for express_train_path in express_train_paths:
-        #         for part in express_train_path:
-        #             if part['file'] in express_train.Caozhou_Jilong.values():
-        #                 conn = get_db_connection(express_train.data_path + part['file'])
-        #                 cursor = conn.cursor()
-        #                 cursor.execute(f"""SELECT 車站 FROM train
-        #                                             WHERE 車站 IN ('{sql_transfer_points}', '{part['arrival_place']}', '{part['departure_place']}')
-        #                                             ORDER BY rowid;""")
-        #                 record = [i for trans in cursor.fetchall()]
-        #                 conn.close()
-        #                 # 先獲取兩班車與transfer_points，會落在哪個位置，
-        #                 # 如果都在 "板橋" 往北，"新左營" 往南，則不考慮，
-        #                 # ! 如果獲取兩班車中包含兩或以上transfer_point則考慮換車，
-        #                 pass
+        ExpressTrain_X_HighSpeedRail_paths = None
+        if high_speed_rail_paths and express_train_paths is not None:
+            HighSpadeRail_ExpressTrain_transfer_points = ["板橋", "台北", "新烏日", "新左營"]
+            sql_transfer_points = "','".join(HighSpadeRail_ExpressTrain_transfer_points)
 
+            # 找到一台合適的台鐵
+            for i in range(len(express_train_paths)):
+                for j in range(len(express_train_paths[i])):
+                    part = express_train_paths[i][j]
+                    if part['file'] in express_train.Caozhou_Jilong.values():
 
+                        if "莒光" in part['transportation_name']:
+                            continue
+
+                        # 先獲取兩班車與transfer_points，會落在哪個位置，
+                        conn = get_db_connection(express_train.data_path + part['file'])
+                        cursor = conn.cursor()
+                        cursor.execute(f"""SELECT 車站 FROM train
+                                                                WHERE 車站 IN ('{sql_transfer_points}', '{part['departure_place']}', '{part['arrival_place']}')
+                                                                ORDER BY rowid;""")
+                        record = [trans[0] for trans in cursor.fetchall()]
+                        conn.close()
+                        # 如果都在 "板橋" 往北，"新左營" 往南，則不考慮，
+                        if record[1] is part['departure_place'] or record[-2] is part['arrival_place']:
+                            break
+                        # ! 如果獲取兩班車中包含兩或以上transfer_point則考慮換車，
+                        departure_i = record.index(part['departure_time'])
+                        arrival_i = record.index(part['arrival_place'])
+                        trans = []
+                        if departure_i is 0:
+                            trans = [1]
+                        else:
+                            trans = [departure_i - 1, departure_i + 1]
+                        if arrival_i is -1:
+                            trans = [(i, arrival_i - 1) for i in trans]
+                        else:
+                            trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
+
+                        temple_ExpressTrain_X_HighSpeedRail_path = express_train_paths[i][:j]
+
+                        for m, n in trans:
+                            list1 = ExpressTrain(departure_time=start_date, start=part['departure_time'], end=record[m])
+                            list2 = HighSpadeRail(departure_time=start_date, start=record[m], end=record[n],
+                                                  discount=True, reserved=True)
+                            list3 = ExpressTrain(departure_time=start_date, start=record[n],
+                                                 end=express_train_paths[i]['arrival_place'])
 
         for i in range(len(paths)):
             for j in range(len(paths[i])):
