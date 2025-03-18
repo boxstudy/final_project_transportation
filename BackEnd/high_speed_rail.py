@@ -33,8 +33,6 @@ class HighSpadeRail(Transportation):
         self.paths = [[{"type": "HighSpeedRail", "file": file, "departure_place": self.start,
                         "arrival_place": self.end}]]
 
-    import datetime
-
     def create_time(self):
         for path in self.paths:
             for route in path:
