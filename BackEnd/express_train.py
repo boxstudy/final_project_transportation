@@ -1,5 +1,5 @@
+import copy
 from datetime import datetime, timedelta
-from importlib.metadata import files
 
 from transportation import Transportation, get_db_connection
 
@@ -14,12 +14,27 @@ class ExpressTrain(Transportation):
         super().__init__(departure_time, start, end, "Express_Train/")
 
         self.Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
-        self.Taidong_Shulin = {"to": "東部往北（臺東→樹林）.db", "from": "東部往南（樹林→臺東).db"}
+        self.Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
         self.Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
+
+    def count_distance(self, place1, place2, file):
+        # print(f"place1: {place1}, place2: {place2}, file: {file}")
+        conn = get_db_connection(self.data_path + file)
+        cursor = conn.cursor()
+        cursor.execute(f"""
+                         SELECT 
+                            (SELECT 距離 FROM train WHERE 車站 = ?) AS 出發距離,
+                            (SELECT 距離 FROM train WHERE 車站 = ?) AS 到達距離
+                                
+                        """, (place1, place2))
+        distance1, distance2 = cursor.fetchone()
+        # print(distance1, distance2)
+        conn.close()
+        return abs(float(distance2) - float(distance1))
 
     # 找尋車站在哪個表之中
     def find_table(self, station_name):
-        files = [self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]]
+        files = [self.Caozhou_Jilong["to"], self.Shulin_Taidong["to"], self.Taidong_Xinzuoying["to"]]
 
         file_set = set()
 
@@ -51,26 +66,48 @@ class ExpressTrain(Transportation):
         return records[0] == start_station
 
     def create_path(self):
-        file1= self.find_table(self.start)
-        file2 = self.find_table(self.end)
-        same_file = file1.intersection(file2)
-        if len(same_file):
+        # 順時針
+        clockwise_to_file = {"高雄": self.Caozhou_Jilong["to"], "臺北": self.Shulin_Taidong["to"], "臺東": self.Taidong_Xinzuoying["to"]}
+        # 逆時針
+        counterclockwise_to_file = {"臺北": self.Caozhou_Jilong["to"], "臺東": self.Taidong_Xinzuoying["to"], "高雄": self.Taidong_Xinzuoying["to"]}
+        file_to_start_end = {self.Caozhou_Jilong["to"]: ("高雄", "臺北"), self.Shulin_Taidong["to"]: ("臺北", "臺東"), self.Taidong_Xinzuoying["to"]: ("臺東", "高雄")}
+        
+        files1= self.find_table(self.start)
+        files2 = self.find_table(self.end)
+        if len(files1) == 0 or len(files2) == 0:
+            raise ValueError(f"Cannot find a valid route from {self.start} to {self.end}")
+
+        same_file = files1.intersection(files2)
+        if len(same_file) > 0:
             same_file = same_file.pop()
             file_set = frozenset({same_file, same_file})
         else:
-            file1 = file1.pop()
-            file2 = file2.pop()
-            file_set = frozenset({file1, file2})
+            file1 = files1.pop()
+            file2 = files2.pop()
+            if len(files1) == 0 and len(files2) == 0:
+                file_set = frozenset({file1, file2})
+            elif len(files1) == 0:
+                start, end = file_to_start_end[file1]
+                distance1 = self.count_distance(start, self.start, file1) + self.count_distance(start, self.end, counterclockwise_to_file[start])
+                distance2 = self.count_distance(end, self.start, file1) + self.count_distance(end, self.end, clockwise_to_file[end])
+                file_set = frozenset({file1, counterclockwise_to_file[start]}) if distance1 < distance2 else frozenset({file1, clockwise_to_file[end]})
+            elif len(files2) == 0:
+                start, end = file_to_start_end[file2]
+                distance1 = (self.count_distance(start, self.end, file2) + self.count_distance(start, self.start, counterclockwise_to_file[start]))
+                distance2 = self.count_distance(end, self.end, file2) + self.count_distance(end, self.start, clockwise_to_file[end])
+                file_set = frozenset({file2, counterclockwise_to_file[start]}) if distance1 < distance2 else frozenset({file2, clockwise_to_file[end]})
+            else:
+                raise ValueError(f"Cannot find a valid route from {self.start} to {self.end}")
 
         transfer_points = {
-            frozenset({self.Caozhou_Jilong["to"], self.Taidong_Shulin["to"]}): "臺北",
-            frozenset({self.Taidong_Shulin["to"], self.Taidong_Xinzuoying["to"]}): "臺東",
+            frozenset({self.Caozhou_Jilong["to"], self.Shulin_Taidong["to"]}): "臺北",
+            frozenset({self.Shulin_Taidong["to"], self.Taidong_Xinzuoying["to"]}): "臺東",
             frozenset({self.Caozhou_Jilong["to"], self.Taidong_Xinzuoying["to"]}): "高雄"
         }
 
         reverse_direction = {self.Caozhou_Jilong["to"]: self.Caozhou_Jilong["from"],
-                           self.Taidong_Shulin["to"]: self.Taidong_Shulin["from"],
-                           self.Caozhou_Jilong["to"]: self.Taidong_Shulin["from"]}
+                             self.Shulin_Taidong["to"]: self.Shulin_Taidong["from"],
+                             self.Taidong_Xinzuoying["to"]: self.Taidong_Xinzuoying["from"]}
 
         if file_set in transfer_points:
             transfer_station = transfer_points[file_set]
@@ -94,7 +131,9 @@ class ExpressTrain(Transportation):
     def create_time(self):
         if len(self.paths[0]) == 1:  # 不需轉車
             fastest_train, cheapest_train = self.find_best_train(self.paths[0][0]["file"], self.start, self.end)
-            self.paths *= 2  # fast path, cheap path
+
+            self.paths = copy.deepcopy(self.paths)
+            self.paths.append(copy.deepcopy(self.paths[0]))
             self.paths[0][0].update(fastest_train)
             self.paths[1][0].update(cheapest_train)
         else:  # 需轉車
@@ -111,7 +150,8 @@ class ExpressTrain(Transportation):
             # 取得所有可銜接的第二段列車(最便宜)
             _, second_leg_cheapest_train = self.find_best_train(second_leg_file, transfer_station, self.end, first_leg_cheapest_train["arrival_time"])
 
-            self.paths *= 2  # fast path, cheap path
+            self.paths = copy.deepcopy(self.paths)
+            self.paths.append(copy.deepcopy(self.paths[0]))
             self.paths[0][0].update(first_leg_fastest_train)
             self.paths[0][1].update(second_leg_fastest_train)
             self.paths[1][0].update(first_leg_cheapest_train)
@@ -178,7 +218,7 @@ class ExpressTrain(Transportation):
             raise ValueError("No trains available")
 
         # 找到最快火車
-        fastest_train = min(available_trains, key=lambda x: x["departure_time"])
+        fastest_train = min(available_trains, key=lambda x: x["arrival_time"])
 
         #找到最便宜火車（優先順序：莒光號 > 其他)
         cheapest_train = None
@@ -189,7 +229,6 @@ class ExpressTrain(Transportation):
 
         if cheapest_train is None:
             cheapest_train = fastest_train
-
         return fastest_train, cheapest_train
 
     def create_cost(self):

@@ -2,7 +2,7 @@ from transportation import Transportation, get_db_connection
 import datetime
 
 
-class HighSpadeRail(Transportation):
+class HighSpeedRail(Transportation):
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end, "High_Speed_Rail/")
 
@@ -20,11 +20,14 @@ class HighSpadeRail(Transportation):
                         SELECT 車站 FROM train 
                         WHERE 車站 IN ('{start_station}', '{end_station}') 
                         ORDER BY rowid;""")
-        records = cursor.fetchone()
+        records = cursor.fetchall()
         conn.close()
-        if records is None:
+        i = 0
+        for _ in records:
+            i += 1
+        if i < 2:
             raise ValueError(f"Cannot find a valid route from {start_station} to {end_station} in {db_file}")
-        return records[0] == start_station
+        return records[0][0] == start_station
 
     def create_path(self):
         file = self.ZuoYing_NanGang["to"]
@@ -55,7 +58,7 @@ class HighSpadeRail(Transportation):
                     return
 
                 # 取得當天有行駛的車次（欄位值為 'T'）
-                available_trains = [columns[i] for i, val in enumerate(row[1:]) if val == 'T']
+                available_trains = [columns[i] for i, val in enumerate(row[1:]) if val == 'T'] #row表示車次T或F
 
                 if not available_trains:
                     conn.close()
@@ -71,10 +74,13 @@ class HighSpadeRail(Transportation):
                     WHERE 車站 IN ('{self.start}', '{self.end}')
                     ORDER BY rowid
                 """)
-                rows = cursor.fetchall()
+                rows = cursor.fetchall()    #rows表示
 
                 # 建立站點對應的時間表
-                station_times = {row[0]: row[1:] for row in rows}
+                station_times = {}
+                for row in rows:
+                    station_name = row[0]  # 車站名稱
+                    station_times[station_name] = row[1:]  # 該站對應所有車次的時間
 
                 # 確保 start 和 end 站點存在
                 if self.start in station_times and self.end in station_times:
@@ -95,26 +101,45 @@ class HighSpadeRail(Transportation):
 
                         # 確保該火車在出發站與目的地都停靠（非 NULL 且非 '↓'）
                         if start_time not in (None, '↓') and end_time not in (None, '↓'):
-                            try:
-                                # 轉換火車的出發時間為 datetime
-                                train_departure_dt = datetime.datetime.strptime(start_time, "%H:%M")
+                            # 轉換火車的出發時間為 datetime
+                            train_departure_dt = datetime.datetime.strptime(start_time, "%H:%M")
 
-                                # 確保班次出發時間晚於 self.departure_time
-                                if train_departure_dt.time() >= self_departure_dt.time():
-                                    selected_train = train_no
-                                    selected_departure_time = start_time
-                                    selected_arrival_time = end_time
-                                    break  # 找到第一個符合條件的班次就結束
-                            except ValueError:
-                                continue  # 如果時間格式錯誤，跳過該班車
+                            # 確保班次出發時間晚於 self.departure_time
+                            if train_departure_dt.time() >= self_departure_dt.time():
+                                # 直接使用 self_departure_dt 的日期
+                                format_departure_time = datetime.datetime.combine(self_departure_dt.date(),
+                                                                                  train_departure_dt.time())
+
+                                # 轉換抵達時間
+                                train_arrival_dt = datetime.datetime.strptime(end_time, "%H:%M")
+                                format_arrival_time = datetime.datetime.combine(self_departure_dt.date(),
+                                                                                train_arrival_dt.time())
+
+                                # 如果抵達時間是 "00:XX"，則應該是隔天
+                                if train_arrival_dt.strftime("%H") == "00":
+                                    format_arrival_time += datetime.timedelta(days=1)
+
+                                # 轉換為字串格式
+                                selected_train = train_no
+                                selected_departure_time = format_departure_time.strftime("%Y-%m-%d %H:%M")
+                                selected_arrival_time = format_arrival_time.strftime("%Y-%m-%d %H:%M")
+
+                                # 更新路徑資訊
+                                if selected_train:
+                                    route.update({
+                                        "train_number": selected_train,
+                                        "departure_time": selected_departure_time,
+                                        "arrival_time": selected_arrival_time
+                                    })
+                                    self.paths[0][0].update({"train_number": selected_train})
+
+                                break  # 找到第一個符合條件的班次就結束
+
+                            # except ValueError:
+                            #     continue  # 如果時間格式錯誤，跳過該班車
 
                 # 更新路徑資訊
-                if selected_train:
-                    route.update({
-                        "train_number": selected_train,
-                        "departure_time": selected_departure_time,
-                        "arrival_time": selected_arrival_time
-                    })
+
 
                 conn.close()
 
