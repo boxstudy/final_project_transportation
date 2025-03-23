@@ -76,7 +76,6 @@ class TransportationPath:
 
                             flag = False
                             for m, n in trans:
-                                print(m, n)
                                 list1 = ExpressTrain(departure_time=start_date, start=part['departure_place'],
                                                      end=record[m]).create()
                                 list2 = HighSpeedRail(departure_time=start_date,
