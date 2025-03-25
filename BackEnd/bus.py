@@ -48,4 +48,4 @@ class Bus(Transportation):
 
     def __create_cost(self):
         for i in range(len(self.paths)):
-            self.paths[i][0].update({"cost": "51"})
+            self.paths[i][0].update({"cost": 51})
