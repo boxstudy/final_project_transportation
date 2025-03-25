@@ -38,13 +38,15 @@ class TransportationPath:
             select_paths = []
             select_num = 1 # 最多選幾班車
             for i in range(len(tmp_express_train_paths)):
-                if 0 == select_num:
-                    break
                 path = tmp_express_train_paths[i]
                 for j in range(len(path)):
                     if path[j]['file'] in express_train.Caozhou_Jilong.values():
                         select_paths.append(path)
-                        i += 1
+                        select_num -= 1
+                        if 0 == select_num:
+                            break
+                if 0 == select_num:
+                    break
 
             if len(select_paths):
                 for i in range(len(select_paths)):
@@ -96,7 +98,10 @@ class TransportationPath:
                                 if list1 and list2 and list3:
                                     spend_time = get_spend_path_minutes(list1 + list2 + list3)
                                     if spend_time < orig_spend_time:
-                                        ExpressTrain_X_HighSpeedRail_paths.append(select_paths[i][:j] + list1 + list2 + list3)
+                                        l = select_paths[i][:j] + list1 + list2 + list3
+                                        if l not in ExpressTrain_X_HighSpeedRail_paths:
+                                            ExpressTrain_X_HighSpeedRail_paths.append(l)
+                                        print(select_paths[i][:j])
                                         flag = True
                             if flag:
                                 break

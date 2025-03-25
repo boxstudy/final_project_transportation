@@ -41,5 +41,5 @@ class Transportation(ABC):
         except Exception as e:
             self.paths = []
             print(e)
-            raise e
+            # raise e
         return self.paths
