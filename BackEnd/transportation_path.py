@@ -36,7 +36,7 @@ class TransportationPath:
             # 找到有覆蓋高鐵線路的台鐵，選最快的幾台
             tmp_express_train_paths = sorted(express_train_paths, key=get_spend_path_minutes)
             select_paths = []
-            select_num = 1 # 最多選幾班車
+            select_num = 2 # 最多選幾班車
             for i in range(len(tmp_express_train_paths)):
                 path = tmp_express_train_paths[i]
                 for j in range(len(path)):
@@ -83,18 +83,20 @@ class TransportationPath:
 
                             flag = False
                             for m, n in trans:
-                                list1 = ExpressTrain(departure_time=start_date, start=part['departure_place'],
+                                list1 = ExpressTrain(departure_time=part['departure_time'], start=part['departure_place'],
                                                      end=record[m]).create()
-                                list2 = HighSpeedRail(departure_time=start_date,
+                                list1 = min(list1, key=get_spend_path_minutes)
+
+                                list2 = HighSpeedRail(departure_time=list1[-1]['arrival_time'],
                                                       start=HighSpadeRail_transfer_points[ExpressTrain_transfer_points.index(record[m])],
                                                       end=HighSpadeRail_transfer_points[ExpressTrain_transfer_points.index(record[n])],
                                                       discount=True, reserved=True).create()
-                                list3 = ExpressTrain(departure_time=start_date, start=record[n],
-                                                     end=select_paths[i][-1]['arrival_place']).create()
-
-                                list1 = min(list1, key=get_spend_path_minutes)
                                 list2 = min(list2, key=get_spend_path_minutes)
+
+                                list3 = ExpressTrain(departure_time=list2[-1]['arrival_time'], start=record[n],
+                                                     end=select_paths[i][-1]['arrival_place']).create()
                                 list3 = min(list3, key=get_spend_path_minutes)
+
                                 if list1 and list2 and list3:
                                     spend_time = get_spend_path_minutes(list1 + list2 + list3)
                                     if spend_time < orig_spend_time:

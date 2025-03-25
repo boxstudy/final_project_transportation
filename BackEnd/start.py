@@ -59,10 +59,11 @@ def data_recommend(time, from_place, to_place):
         val = path.get(time, from_place, to_place)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
+        raise e
     return val
 
 if __name__ == '__main__':
-    # val = data_recommend("2024-08-26 07:38", "高雄", "臺北")
-    # pprint(val)
+    val = data_recommend("2024-08-26 07:38", "高雄", "臺北")
+    pprint(val)
 
     app.run(threaded=True, port=8888, host='0.0.0.0')
