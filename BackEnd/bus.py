@@ -8,25 +8,38 @@ class Bus(Transportation):
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end, "Bus/")
 
-    def __create_path(self):
+        station = ["東華大學", "花蓮轉運站"]
+        if start not in station:
+            raise ValueError(f"Invalid start place {start}")
+        if end not in station:
+            raise ValueError(f"Invalid end place {end}")
+
+    def _create_path(self):
         if self.start == "東華大學":
             file = "公車(往花蓮火車站).db"
         else:
             file = "公車(往東華大學).db"
+
         self.paths = [[{"type": "Bus", "file": file, "departure_place": self.start,
                         "arrival_place": self.end}]]
 
-    def __create_time(self):
+    def _create_time(self):
         num = 1  # number of bus
         for i in range(num - 1):
             self.paths.append(copy.deepcopy(self.paths[0]))
 
         # 取得所有公車時刻
-        with get_db_connection(self.data_path + self.paths[0][0]["file"]) as conn, conn.cursor() as cursor:
-            cursor.execute("SELECT 301 FROM bus")
+        conn = get_db_connection(self.data_path + self.paths[0][0]["file"])
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT {"花蓮301"} FROM bus")
             bus_times = [row[0] for row in cursor.fetchall()]  # 取得時間列表
+        finally:
+            cursor.close()
+            conn.close()
 
         # 找到所有比 departure_time 晚的時間
+        print(type(bus_times[0]), bus_times)
         later_times = [time for time in bus_times if time > self.departure_time]
         later_times.sort()
 
@@ -48,7 +61,13 @@ class Bus(Transportation):
                 self.paths[i][0].update(
                     {"departure_time": formatted_departure_time, "arrival_time": formatted_arrival_time})
 
-
-    def __create_cost(self):
+    def _create_cost(self):
         for i in range(len(self.paths)):
             self.paths[i][0].update({"cost": 51})
+
+
+
+if __name__ == "__main__":
+    bus = Bus("2022-03-15 10:00", "東華大學", "花蓮轉運站")
+    bus.create()
+    print(bus.paths)
