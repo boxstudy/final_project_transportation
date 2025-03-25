@@ -22,22 +22,22 @@ class Transportation(ABC):
         self.paths = []
 
     @abstractmethod
-    def create_path(self):
+    def __create_path(self):
         pass
 
     @abstractmethod
-    def create_time(self):
+    def __create_time(self):
         pass
 
     @abstractmethod
-    def create_cost(self):
+    def __create_cost(self):
         pass
 
     def create(self):
         try:
-            self.create_path()
-            self.create_time()
-            self.create_cost()
+            self.__create_path()
+            self.__create_time()
+            self.__create_cost()
         except Exception as e:
             self.paths = []
             print(e)
