@@ -10,14 +10,14 @@ from transportation import Transportation, get_db_connection
      台東→枋寮→新左營 x 樹林→台東 : 臺東
 """
 class ExpressTrain(Transportation):
+    Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
+    Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
+    Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
+
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end, "Express_Train/")
 
-        self.Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
-        self.Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
-        self.Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
-
-    def __count_distance(self, place1, place2, file):
+    def _count_distance(self, place1, place2, file):
         # print(f"place1: {place1}, place2: {place2}, file: {file}")
         conn = get_db_connection(self.data_path + file)
         cursor = conn.cursor()
@@ -92,14 +92,16 @@ class ExpressTrain(Transportation):
                 file_set = frozenset({file1, file2})
             elif len(files1) == 0:
                 start, end = file_to_start_end[file1]
-                distance1 = self.__count_distance(start, self.start, file1) + self.__count_distance(start, self.end, counterclockwise_to_file[start])
-                distance2 = self.__count_distance(end, self.start, file1) + self.__count_distance(end, self.end, clockwise_to_file[end])
-                file_set = frozenset({file1, counterclockwise_to_file[start]}) if distance1 < distance2 else frozenset({file1, clockwise_to_file[end]})
+                distance1 = self._count_distance(start, self.start, file1) + self._count_distance(start, self.end, counterclockwise_to_file[start])
+                distance2 = self._count_distance(end, self.start, file1) + self._count_distance(end, self.end, clockwise_to_file[end])
+                file2 = counterclockwise_to_file[start] if distance1 < distance2 else clockwise_to_file[end]
+                file_set = frozenset({file1, file2})
             elif len(files2) == 0:
                 start, end = file_to_start_end[file2]
-                distance1 = (self.__count_distance(start, self.end, file2) + self.__count_distance(start, self.start, counterclockwise_to_file[start]))
-                distance2 = self.__count_distance(end, self.end, file2) + self.__count_distance(end, self.start, clockwise_to_file[end])
-                file_set = frozenset({file2, counterclockwise_to_file[start]}) if distance1 < distance2 else frozenset({file2, clockwise_to_file[end]})
+                distance1 = (self._count_distance(start, self.end, file2) + self._count_distance(start, self.start, counterclockwise_to_file[start]))
+                distance2 = self._count_distance(end, self.end, file2) + self._count_distance(end, self.start, clockwise_to_file[end])
+                file1 = counterclockwise_to_file[start] if distance1 < distance2 else clockwise_to_file[end]
+                file_set = frozenset({file1, file2})
             else:
                 raise ValueError(f"Cannot find a valid route from {self.start} to {self.end}")
 
@@ -128,6 +130,8 @@ class ExpressTrain(Transportation):
                  "arrival_place": self.end}
             ]]
         else:
+            if not self._check_route_direction(same_file, self.start, self.end):
+                same_file = reverse_direction[same_file]
             self.paths = [[{"type": "Express_Train", "file": same_file, "departure_place": self.start,
                             "arrival_place": self.end}
             ]]
@@ -252,11 +256,11 @@ class ExpressTrain(Transportation):
                 finally:
                     cursor.close()
                     conn.close()
-
                 distance = max(float(arrival_distance) - float(departure_distance), 10)
+                # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
                 transportation_name = route.get("transportation_name")
                 cost = 0
-                for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27)):
+                for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
                     if name  in transportation_name:
                         cost = rate * distance
                         break
@@ -264,3 +268,8 @@ class ExpressTrain(Transportation):
                     raise ValueError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
                 route.update({"cost": round(cost)})
+
+if __name__ == "__main__":
+    t = ExpressTrain("2024-08-26 07:38", "高雄", "花蓮")
+    t.create()
+    print(t.paths)
