@@ -138,37 +138,68 @@ class ExpressTrain(Transportation):
 
     def _create_time(self):
         if len(self.paths[0]) == 1:  # 不需轉車
-            fastest_train, cheapest_train = self._find_best_train(self.paths[0][0]["file"], self.start, self.end)
+            fastest_train, cheapest_train = self._find_best_train(self.paths[0][0]["file"], self.start, self.end, 5)
 
-            self.paths = copy.deepcopy(self.paths)
-            self.paths.append(copy.deepcopy(self.paths[0]))
-            self.paths[0][0].update(fastest_train)
-            self.paths[1][0].update(cheapest_train)
+            for data in fastest_train:
+                l = copy.deepcopy(self.paths[0])
+                l[0].update(data)
+                self.paths.append(l)
+
+            if cheapest_train is not None:
+                self.paths[0][0].update(cheapest_train)
+            else:
+                self.paths.pop(0)
+
         else:  # 需轉車
             transfer_station = self.paths[0][0]["arrival_place"]
             first_leg_file = self.paths[0][0]["file"]
             second_leg_file = self.paths[0][1]["file"]
 
             # 取得第一段所有列車
-            first_leg_fastest_train, first_leg_cheapest_train = self._find_best_train(first_leg_file, self.start, transfer_station)
+            first_leg_fastest_train, first_leg_cheapest_train = self._find_best_train(first_leg_file, self.start, transfer_station,3)
 
-            # 取得所有可銜接的第二段列車(最快)
-            second_leg_fastest_train, _ = self._find_best_train(second_leg_file, transfer_station, self.end, first_leg_fastest_train["arrival_time"])
+            for i in range(len(first_leg_fastest_train)):
+                # 取得所有可銜接的第二段列車(最快)
+                second_leg_fastest_train, _ = self._find_best_train(second_leg_file, transfer_station, self.end, 1, first_leg_fastest_train[i]["arrival_time"])
+                if second_leg_fastest_train is not None:
+                    l = copy.deepcopy(self.paths[0])
+                    l[0].update(first_leg_fastest_train[i])
+                    l[1].update(second_leg_fastest_train[0])
+                    self.paths.append(l)
+            if self.paths:
+                self.paths.pop(0)
 
             # 取得所有可銜接的第二段列車(最便宜)
-            _, second_leg_cheapest_train = self._find_best_train(second_leg_file, transfer_station, self.end, first_leg_cheapest_train["arrival_time"])
+            if first_leg_cheapest_train is None:
+                _, second_leg_cheapest_train = self._find_best_train(second_leg_file, transfer_station, self.end, 1)
+            else:
+                _, second_leg_cheapest_train = self._find_best_train(second_leg_file, transfer_station, self.end, 1, first_leg_cheapest_train["arrival_time"])
 
-            self.paths = copy.deepcopy(self.paths)
-            self.paths.append(copy.deepcopy(self.paths[0]))
-            self.paths[0][0].update(first_leg_fastest_train)
-            self.paths[0][1].update(second_leg_fastest_train)
-            self.paths[1][0].update(first_leg_cheapest_train)
-            self.paths[1][1].update(second_leg_cheapest_train)
 
-    def _find_best_train(self, db_file, departure_station, arrival_station, min_departure_time=None):
+            #更新最便宜路線火車1班
+            if first_leg_cheapest_train is not None and second_leg_cheapest_train is not None:
+                l = copy.deepcopy(self.paths[0])
+                l[0].update(first_leg_cheapest_train)
+                l[1].update(second_leg_cheapest_train)
+
+            elif first_leg_cheapest_train is not None and second_leg_cheapest_train is None:
+                l = copy.deepcopy(self.paths[0])
+                l[0].update(first_leg_cheapest_train)
+                l[1].update(second_leg_fastest_train[0])
+                self.paths.append(l)
+            elif first_leg_cheapest_train is None and second_leg_cheapest_train is not None:
+                l = copy.deepcopy(self.paths[0])
+                l[0].update(first_leg_fastest_train[0])
+                l[1].update(second_leg_cheapest_train)
+                self.paths.append(l)
+            else:
+                return None
+
+
+    def _find_best_train(self, db_file, departure_station, arrival_station, number_of_trains = 1, min_departure_time=None):
         date_part, time_part = self.departure_time.split(' ')
         if min_departure_time is not None:
-            time_part = datetime.strptime(self.departure_time, '%Y-%m-%d %H:%M').strftime('%H:%M')
+            time_part = datetime.strptime(min_departure_time, '%Y-%m-%d %H:%M').strftime('%H:%M')
         min_departure_time_datatime = datetime.strptime(time_part, "%H:%M")
 
         conn = get_db_connection(self.data_path + db_file)
@@ -210,9 +241,9 @@ class ExpressTrain(Transportation):
                 departure_time = datetime.strptime(train_data["departure_time"], "%H:%M")
 
                 # 確保出發時間比設定晚
-                if departure_time > min_departure_time_datatime:
+                if departure_time >= min_departure_time_datatime:
                     train_data["departure_time"] = date_part + " " + train_data["departure_time"]
-                    if departure_time > datetime.strptime(train_data["arrival_time"], "%H:%M"):
+                    if departure_time >= datetime.strptime(train_data["arrival_time"], "%H:%M"):
                         date = datetime.strptime(date_part, "%Y-%m-%d")
                         date += timedelta(days=1)
                         train_data["arrival_time"] = date.strftime("%Y-%m-%d") + " " + train_data["arrival_time"]
@@ -223,10 +254,10 @@ class ExpressTrain(Transportation):
         conn.close()
 
         if not available_trains:
-            raise ValueError("No trains available")
+            return None, None
 
-        # 找到最快火車
-        fastest_train = min(available_trains, key=lambda x: x["arrival_time"])
+        # 沒轉車找5班，有轉車找3班
+        fastest_trains = sorted(available_trains, key=lambda x: x["arrival_time"])[:number_of_trains]
 
         #找到最便宜火車（優先順序：莒光號 > 其他)
         cheapest_train = None
@@ -235,9 +266,7 @@ class ExpressTrain(Transportation):
                 cheapest_train = train
                 break
 
-        if cheapest_train is None:
-            cheapest_train = fastest_train
-        return fastest_train, cheapest_train
+        return fastest_trains, cheapest_train
 
     def _create_cost(self):
         for path_i in range(len(self.paths)):
