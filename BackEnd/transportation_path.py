@@ -1,4 +1,5 @@
-from transportation import get_db_connection, get_spend_path_minutes
+from bus import Bus
+from bus_X_express_train import Bus_X_ExpressTrain
 from high_speed_rail_X_express_train import HighSpeedRail_X_ExpressTrain
 from express_train import ExpressTrain
 from high_speed_rail import HighSpeedRail
@@ -28,8 +29,15 @@ class TransportationPath:
         express_train_paths = express_train.create()
         paths.extend(express_train_paths)
 
-        ExpressTrain_X_HighSpeedRail_paths = HighSpeedRail_X_ExpressTrain(express_train, high_speed_rail).create()
-        paths.extend(ExpressTrain_X_HighSpeedRail_paths)
+        bus = Bus(departure_time=start_date, start=departure_place, end=arrive_place)
+        bus_paths = bus.create()
+        paths.extend(bus_paths)
+
+        HighSpeedRail_X_ExpressTrain_paths = HighSpeedRail_X_ExpressTrain(express_train, high_speed_rail).create()
+        paths.extend(HighSpeedRail_X_ExpressTrain_paths)
+
+        Bus_X_ExpressTrain_paths = Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place).create()
+        paths.extend(Bus_X_ExpressTrain_paths)
 
         for i in range(len(paths)):
             for j in range(len(paths[i])):

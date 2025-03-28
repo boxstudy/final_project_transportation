@@ -16,5 +16,5 @@ class HighSpeedRail_X_ExpressTrain(ComplexTransport):
                                                   ExpressTrain_transfer_points,
                                                   HighSpadeRail_transfer_points,
                                                   ExpressTrain.Caozhou_Jilong.values(),
-                                                   ("train", "車站")) if self.transportation1.paths else []
+                                                   ("train", "車站")) if self.express_train.paths else []
         return self.paths

@@ -47,7 +47,6 @@ class Transportation(ABC):
         except Exception as e:
             self.paths = []
             print(e)
-            # raise e
         return self.paths
 
 class ComplexTransport:
@@ -117,11 +116,19 @@ class ComplexTransport:
                 # ! 如果獲取兩班車中包含兩或以上transfer_point則考慮換車，
                 departure_i = record.index(part['departure_place'])
                 arrival_i = record.index(part['arrival_place'])
-                trans = [1] if departure_i == 0 else [departure_i - 1, departure_i + 1]
-                if arrival_i is len(record) - 1:
-                    trans = [(i, arrival_i - 1) for i in trans]
+
+                trans = []
+                if departure_i == 0:
+                    trans = [1]
                 else:
-                    trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
+                    if departure_i + 1 != arrival_i:
+                        trans = [departure_i - 1, departure_i + 1]
+                    else:
+                        trans = [departure_i - 1]
+                if arrival_i is len(record) - 1:
+                    trans = [(i, arrival_i - 1) for i in trans if i != departure_i]
+                else:
+                    trans = [(i, arrival_i - 1) for i in trans if i != departure_i] + [(i, arrival_i + 1) for i in trans]
 
                 orig_spend_time = get_spend_path_minutes(select_paths[i][j:])
 
@@ -131,6 +138,9 @@ class ComplexTransport:
                                          start=part['departure_place'],
                                          end=record[m]).create()
                     list1 = min(list1, key=get_spend_path_minutes)
+
+                    # print("m, n", m, n)
+                    # print("record", record)
 
                     list2 = transportation_inner.reinit(departure_time=list1[-1]['arrival_time'],
                                                         start=inner_transfer_points[src_transfer_points.index(record[m])],

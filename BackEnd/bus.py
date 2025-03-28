@@ -8,13 +8,15 @@ class Bus(Transportation):
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end, "Bus/")
 
-        station = ["東華大學", "花蓮轉運站"]
-        if start not in station:
-            raise ValueError(f"Invalid start place {start}")
-        if end not in station:
-            raise ValueError(f"Invalid end place {end}")
+
 
     def _create_path(self):
+        station = ["東華大學", "花蓮"]
+        if self.start not in station:
+            raise ValueError(f"Invalid start place {self.start}")
+        if self.end not in station:
+            raise ValueError(f"Invalid end place {self.end}")
+
         if self.start == "東華大學":
             file = "公車(往花蓮火車站).db"
         else:
@@ -39,7 +41,7 @@ class Bus(Transportation):
             conn.close()
 
         # 找到所有比 departure_time 晚的時間
-        print(type(bus_times[0]), bus_times)
+        # print(type(bus_times[0]), bus_times)
         later_times = [time for time in bus_times if time > self.departure_time]
         later_times.sort()
 
@@ -55,7 +57,7 @@ class Bus(Transportation):
                 # 格式化出發時間與抵達時間（假設車程為 60 分鐘）
                 formatted_departure_time = f"{date} {departure_time}"
                 arrival_time = datetime.strptime(departure_time, "%H:%M") + timedelta(minutes=60)
-                formatted_arrival_time = f"{date} {arrival_time.strftime("%Y-%m-%d %H:%M")}"
+                formatted_arrival_time = f"{date} {arrival_time.strftime("%H:%M")}"
 
                 # 更新路徑資訊
                 self.paths[i][0].update(
@@ -68,6 +70,6 @@ class Bus(Transportation):
 
 
 if __name__ == "__main__":
-    bus = Bus("2022-03-15 10:00", "東華大學", "花蓮轉運站")
+    bus = Bus("2022-03-15 10:00", "東華大學", "花蓮")
     bus.create()
     print(bus.paths)
