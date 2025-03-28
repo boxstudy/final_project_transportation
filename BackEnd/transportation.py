@@ -126,9 +126,12 @@ class ComplexTransport:
                     else:
                         trans = [departure_i - 1]
                 if arrival_i is len(record) - 1:
-                    trans = [(i, arrival_i - 1) for i in trans if i != departure_i]
+                    trans = [(i, arrival_i - 1) for i in trans]
                 else:
-                    trans = [(i, arrival_i - 1) for i in trans if i != departure_i] + [(i, arrival_i + 1) for i in trans]
+                    if arrival_i - 1 != departure_i:
+                        trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
+                    else:
+                        trans = [(i, departure_i + 1) for i in trans]
 
                 orig_spend_time = get_spend_path_minutes(select_paths[i][j:])
 
