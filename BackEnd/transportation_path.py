@@ -21,21 +21,26 @@ class TransportationPath:
         # ]
         paths = []
 
+        print("1.High Speed Rail:")
         high_speed_rail = HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=True, reserved=True)
         high_speed_rail_paths = high_speed_rail.create()
         paths.extend(high_speed_rail_paths)
 
+        print("2.Express Train:")
         express_train = ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
         express_train_paths = express_train.create()
         paths.extend(express_train_paths)
 
+        print("3.Bus:")
         bus = Bus(departure_time=start_date, start=departure_place, end=arrive_place)
         bus_paths = bus.create()
         paths.extend(bus_paths)
 
+        print("4.High Speed Rail X Express Train:")
         HighSpeedRail_X_ExpressTrain_paths = HighSpeedRail_X_ExpressTrain(express_train, high_speed_rail).create()
         paths.extend(HighSpeedRail_X_ExpressTrain_paths)
 
+        print("5.Bus X Express Train:")
         Bus_X_ExpressTrain_paths = Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place).create()
         paths.extend(Bus_X_ExpressTrain_paths)
 
