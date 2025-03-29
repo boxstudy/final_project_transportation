@@ -60,7 +60,6 @@ def data_recommend(time, from_place, to_place):
         print(f"Success: /data/recommend{time}_{from_place}_{to_place}")
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
-        raise e
     return val
 
 if __name__ == '__main__':
