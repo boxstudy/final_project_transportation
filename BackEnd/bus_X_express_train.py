@@ -34,8 +34,10 @@ class Bus_X_ExpressTrain(ComplexTransport):
 
 
     def create(self):
+
         self._create_bus_to_express_train()
         self._create_express_train_to_bus()
+
         return self.paths
 
 

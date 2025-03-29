@@ -131,7 +131,7 @@ class ComplexTransport:
                     if arrival_i - 1 != departure_i:
                         trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
                     else:
-                        trans = [(i, departure_i + 1) for i in trans]
+                        trans = [(i, arrival_i + 1) for i in trans]
 
                 orig_spend_time = get_spend_path_minutes(select_paths[i][j:])
 
