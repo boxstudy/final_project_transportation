@@ -9,13 +9,16 @@ class HighSpeedRail_X_ExpressTrain(ComplexTransport):
         self.high_speed_rail = high_speed_rail
 
     def create(self):
-        ExpressTrain_transfer_points = ["板橋", "臺北", "新烏日", "新左營"]
-        HighSpadeRail_transfer_points = ["板橋", "臺北", "高鐵臺中", "高鐵左營"]
-        self.paths = super()._replace_part_of_path(self.express_train,
-                                                  self.high_speed_rail,
-                                                  ExpressTrain_transfer_points,
-                                                  HighSpadeRail_transfer_points,
-                                                  ExpressTrain.Caozhou_Jilong.values(),
-                                                   ("train", "車站")) if self.express_train.paths else []
+        try:
+            ExpressTrain_transfer_points = ["板橋", "臺北", "新烏日", "新左營"]
+            HighSpadeRail_transfer_points = ["板橋", "臺北", "高鐵臺中", "高鐵左營"]
+            self.paths = super()._replace_part_of_path(self.express_train,
+                                                      self.high_speed_rail,
+                                                      ExpressTrain_transfer_points,
+                                                      HighSpadeRail_transfer_points,
+                                                      ExpressTrain.Caozhou_Jilong.values(),
+                                                       ("train", "車站")) if self.express_train.paths else []
+        except Exception as e:
+            print(e)
 
         return self.paths
