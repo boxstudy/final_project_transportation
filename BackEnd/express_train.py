@@ -254,7 +254,7 @@ class ExpressTrain(Transportation):
         conn.close()
 
         if not available_trains:
-            return None, None
+            return [], None
 
         # 沒轉車找5班，有轉車找3班
         fastest_trains = sorted(available_trains, key=lambda x: x["arrival_time"])[:number_of_trains]
@@ -299,6 +299,6 @@ class ExpressTrain(Transportation):
                 route.update({"cost": round(cost)})
 
 if __name__ == "__main__":
-    t = ExpressTrain("2024-08-26 07:38", "高雄", "花蓮")
+    t = ExpressTrain("2025-08-26 11:42", "新烏日", "新竹")
     t.create()
     print(t.paths)

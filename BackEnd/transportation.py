@@ -137,10 +137,14 @@ class ComplexTransport:
 
                 flag = False
                 for m, n in trans:
+                    if m == n:
+                        continue
+
                     list1 = transportation_src.reinit(departure_time=part['departure_time'],
                                          start=part['departure_place'],
                                          end=record[m]).create()
-                    list1 = min(list1, key=get_spend_path_minutes)
+                    if list1:
+                        list1 = min(list1, key=get_spend_path_minutes)
 
                     # print("m, n", m, n)
                     # print("record", record)
@@ -152,7 +156,8 @@ class ComplexTransport:
 
                     list3 = transportation_src.reinit(departure_time=list2[-1]['arrival_time'], start=record[n],
                                          end=select_paths[i][-1]['arrival_place']).create()
-                    list3 = min(list3, key=get_spend_path_minutes)
+                    if list3:
+                        list3 = min(list3, key=get_spend_path_minutes)
 
                     combined_list = list1 + list2 + list3
                     if combined_list and get_spend_path_minutes(combined_list) < orig_spend_time:
