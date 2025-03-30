@@ -15,8 +15,6 @@ def get_spend_path_minutes(path):
 
 class Transportation(ABC):
     def __init__(self, departure_time: str, start: str, end: str, folder: str):
-        if start == end:
-            raise ValueError("start and end cannot be the same")
         self.departure_time = departure_time
         self.start = start
         self.end = end
@@ -43,6 +41,8 @@ class Transportation(ABC):
 
     def create(self):
         try:
+            if self.start == self.end:
+                raise ValueError("start and end cannot be the same")
             self._create_path()
             self._create_time()
             self._create_cost()
@@ -53,8 +53,6 @@ class Transportation(ABC):
 
 class ComplexTransport(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
-        if start == end:
-            raise ValueError("start and end cannot be the same")
         self.departure_time = departure_time
         self.start = start
         self.end = end
@@ -66,6 +64,8 @@ class ComplexTransport(ABC):
 
     def create(self):
         try:
+            if self.start == self.end:
+                raise ValueError("start and end cannot be the same")
             self._create()
         except Exception as e:
             self.paths = []
