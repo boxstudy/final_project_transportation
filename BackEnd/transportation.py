@@ -51,6 +51,9 @@ class Transportation(ABC):
             print(e)
         return self.paths
 
+
+
+
 class ComplexTransport(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
         self.departure_time = departure_time
@@ -73,13 +76,14 @@ class ComplexTransport(ABC):
         return self.paths
 
     @staticmethod
-    def _replace_part_of_path(transportation_src: Transportation,
-                              transportation_inner: Transportation,
+    def _replace_part_of_path(transportation_src: Transportation | "ComplexTransport",
+                              transportation_inner: Transportation | "ComplexTransport",
                               src_transfer_points: list,
                               inner_transfer_points: list,
                               condition_src_files,
                               order_table_col):
-        res_paths = []
+        if not transportation_src.paths:
+            return []
 
         sql_transfer_points = "','".join(src_transfer_points)
 
@@ -99,8 +103,9 @@ class ComplexTransport(ABC):
                 break
 
         if not select_paths:
-            return res_paths
+            return []
 
+        res_paths = []
         for i in range(len(select_paths)):
             for j in range(len(select_paths[i])):
                 part = select_paths[i][j]
