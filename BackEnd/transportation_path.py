@@ -22,7 +22,7 @@ class TransportationPath:
         paths = []
 
         print("1.High Speed Rail:")
-        high_speed_rail = HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=True, reserved=True)
+        high_speed_rail = HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
         high_speed_rail_paths = high_speed_rail.create()
         paths.extend(high_speed_rail_paths)
 
@@ -37,7 +37,7 @@ class TransportationPath:
         paths.extend(bus_paths)
 
         print("4.High Speed Rail X Express Train:")
-        HighSpeedRail_X_ExpressTrain_paths = HighSpeedRail_X_ExpressTrain(express_train, high_speed_rail).create()
+        HighSpeedRail_X_ExpressTrain_paths = HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True).create()
         paths.extend(HighSpeedRail_X_ExpressTrain_paths)
 
         print("5.Bus X Express Train:")
