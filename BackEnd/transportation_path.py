@@ -1,5 +1,6 @@
 from bus import Bus
 from bus_X_express_train import Bus_X_ExpressTrain
+from bus_X_express_train_X_high_speed_rail import Bus_X_ExpressTrain_X_HighSpeedRail
 from high_speed_rail_X_express_train import HighSpeedRail_X_ExpressTrain
 from express_train import ExpressTrain
 from high_speed_rail import HighSpeedRail
@@ -43,6 +44,10 @@ class TransportationPath:
         print("5.Bus X Express Train:")
         Bus_X_ExpressTrain_paths = Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place).create()
         paths.extend(Bus_X_ExpressTrain_paths)
+
+        print("6.Bus X Express Train X High Speed Rail:")
+        Bus_X_ExpressTrain_X_HighSpeedRail_paths = Bus_X_ExpressTrain_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place).create()
+        paths.extend(Bus_X_ExpressTrain_X_HighSpeedRail_paths)
 
         for i in range(len(paths)):
             for j in range(len(paths[i])):
