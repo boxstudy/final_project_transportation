@@ -124,15 +124,15 @@ class ExpressTrain(Transportation):
                 file2 = reverse_direction[file2]
 
             self.paths = [[
-                {"type": "Express_Train", "file": file1, "departure_place": self.start,
+                {"type": "ExpressTrain", "file": file1, "departure_place": self.start,
                  "arrival_place": transfer_station},
-                {"type": "Express_Train", "file": file2, "departure_place": transfer_station,
+                {"type": "ExpressTrain", "file": file2, "departure_place": transfer_station,
                  "arrival_place": self.end}
             ]]
         else:
             if not self._check_route_direction(same_file, self.start, self.end):
                 same_file = reverse_direction[same_file]
-            self.paths = [[{"type": "Express_Train", "file": same_file, "departure_place": self.start,
+            self.paths = [[{"type": "ExpressTrain", "file": same_file, "departure_place": self.start,
                             "arrival_place": self.end}
             ]]
 

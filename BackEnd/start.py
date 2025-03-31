@@ -23,7 +23,7 @@ def change_high_speed_rail(time, from_place, to_place):
         type = request.args.get('type', '')
 
         match type:
-            case 'high_speed_rail':
+            case 'HighSpeedRail':
                 discount = request.args.get('discount', '')
                 reserved = request.args.get('reserved', '')
                 if not discount.isdigit() or not reserved.isdigit():
