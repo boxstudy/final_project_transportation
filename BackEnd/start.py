@@ -17,7 +17,7 @@ def validate_time_format(time):
 
 
 @app.route('/data/change/<time>_<from_place>_<to_place>', methods=['GET'])
-def change_high_speed_rail(time, from_place, to_place):
+def data_change(time, from_place, to_place):
     try:
         validate_time_format(time)
         type = request.args.get('type', '')
@@ -42,6 +42,38 @@ def change_high_speed_rail(time, from_place, to_place):
 
     except Exception as e:
         abort(400, str(e))
+
+@app.route('/data/recommend_division<time>_<from_place>_<to_place>', methods=['GET'])
+def data_recommend_division(time, from_place, to_place):
+    try:
+        validate_time_format(time)
+
+        if not from_place:
+            raise ValueError("from_place input is empty")
+        if  not to_place:
+            raise ValueError("to_place input is empty")
+
+        want_type = request.args.get('want_type', '-1')
+        ignore_type = request.args.get('ignore_type', '0')
+        if not want_type.isdigit():
+            raise ValueError("want_type error")
+        if not ignore_type.isdigit():
+            raise ValueError("ignore_type error")
+
+    except Exception as e:
+        abort(400, str(e))
+
+    try:
+        data = path.get_division(start_date=time,
+                                 departure_place=from_place,
+                                 arrive_place=to_place,
+                                 mask=int(want_type) & ~int(ignore_type))
+        if not data:
+            return jsonify({"status": "failure", "data": data})
+        return jsonify({"status": "success", "data": data})
+
+    except Exception as e:
+        abort(500, str(e))
 
 
 @app.route('/data/recommend<time>_<from_place>_<to_place>', methods=['GET'])
