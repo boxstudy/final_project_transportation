@@ -43,7 +43,7 @@ class Transportation(ABC):
     def create(self):
         try:
             if self.start == self.end:
-                raise ValueError("start and end cannot be the same")
+                return self.paths
             self._create_path()
             self._create_time()
             self._create_cost()
@@ -69,7 +69,7 @@ class ComplexTransport(ABC):
     def create(self):
         try:
             if self.start == self.end:
-                raise ValueError("start and end cannot be the same")
+                return self.paths
             self._create()
         except Exception as e:
             self.paths = []
