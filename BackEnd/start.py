@@ -33,14 +33,14 @@ def data_recommend(time, from_place, to_place):
     except Exception as e:
         # 印出錯誤訊息與 traceback
         print("❌ 發生錯誤：", e, file=sys.stderr)
-        traceback.print_exc()
+        traceback.print_exc() # ??? 需要這行嗎？
 
         return jsonify({
             "error": str(e),
             "from": from_place,
             "to": to_place,
             "time": time
-        }), 500
+        }), 400, {'Content-Type': 'application/json'}
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True, port=8888, host='0.0.0.0')
