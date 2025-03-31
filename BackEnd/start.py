@@ -1,7 +1,7 @@
 import sys
 import traceback
 import re
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from transportation_path import TransportationPath
 from high_speed_rail import HighSpeedRail
 import json
@@ -37,6 +37,7 @@ def change_high_speed_rail(time, from_place, to_place, discount, reserved):
 
     except Exception as e:
         print("發生錯誤：", e, file=sys.stderr)
+        abort(400, str(e))
 
 
 @app.route('/data/recommend<time>_<from_place>_<to_place>', methods=['GET'])
