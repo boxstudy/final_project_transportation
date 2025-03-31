@@ -89,10 +89,6 @@ class HighSpeedRail(Transportation):
                     start_times = station_times[self.start]
                     end_times = station_times[self.end]
 
-                    selected_train = None
-                    selected_departure_time = None
-                    selected_arrival_time = None
-
                     # 轉換 self.departure_time 為 datetime 物件
                     self_departure_dt = datetime.datetime.strptime(self.departure_time, "%Y-%m-%d %H:%M")
 

@@ -139,7 +139,28 @@ def exit():
     server.stop()
     return jsonify({"status": "success"}), 200, {'Content-Type': 'application/json'}
 
+@app.route('/', methods=['GET'])
+def root():
+    internal_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    print(f"收到來自 {internal_ip} 的請求")
+    return jsonify({"status": "success"}), 200, {'Content-Type': 'application/json'}
+
+
+def get_local_ip():
+    try:
+        # 连接到一个外部服务器（不会真的发送数据）
+        from gevent import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # 连接到 Google 的公共 DNS
+        local_ip = s.getsockname()[0]  # 获取本机 IP
+        s.close()
+        return local_ip
+    except Exception as e:
+        return f"Error: {e}"
+
 
 if __name__ == '__main__':
+    val = path.get("2022-01-01 00:00", "Taipei", "New Taipei City")
+    print(f"伺服器啟動，位址: http://{get_local_ip()}:8888")
     server = pywsgi.WSGIServer(('0.0.0.0', 8888), app)
     server.serve_forever()
