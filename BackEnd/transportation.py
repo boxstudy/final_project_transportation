@@ -109,6 +109,7 @@ class ComplexTransport(ABC):
         res_paths = []
         for i in range(len(select_paths)):
             for j in range(len(select_paths[i])):
+
                 part = select_paths[i][j]
                 if part['file'] not in condition_src_files:
                     continue
@@ -134,25 +135,31 @@ class ComplexTransport(ABC):
                 if record[1] is part['departure_place'] or record[-2] is part['arrival_place']:
                     continue
 
+                if len(record) + 2 == len(src_transfer_points) and len(select_paths[i]) == 1:
+                    continue
+
                 # ! 如果獲取兩班車中包含兩或以上transfer_point則考慮換車，
                 departure_i = record.index(part['departure_place'])
                 arrival_i = record.index(part['arrival_place'])
 
-                trans = []
+
                 if departure_i == 0:
                     trans = [1]
+                elif record[departure_i] in sql_transfer_points:
+                    trans = [departure_i]
+                elif departure_i + 1 != arrival_i:
+                    trans = [departure_i - 1, departure_i + 1]
                 else:
-                    if departure_i + 1 != arrival_i:
-                        trans = [departure_i - 1, departure_i + 1]
-                    else:
-                        trans = [departure_i - 1]
+                    trans = [departure_i - 1]
+
                 if arrival_i is len(record) - 1:
                     trans = [(i, arrival_i - 1) for i in trans]
+                elif record[arrival_i] in sql_transfer_points:
+                    trans = [(i, arrival_i) for i in trans]
+                elif arrival_i - 1 != departure_i:
+                    trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
                 else:
-                    if arrival_i - 1 != departure_i:
-                        trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
-                    else:
-                        trans = [(i, arrival_i + 1) for i in trans]
+                    trans = [(i, arrival_i + 1) for i in trans]
 
                 orig_spend_time = get_spend_path_minutes(select_paths[i][j:])
 
