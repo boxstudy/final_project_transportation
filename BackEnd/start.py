@@ -160,7 +160,6 @@ def get_local_ip():
 
 
 if __name__ == '__main__':
-    val = path.get("2022-01-01 00:00", "Taipei", "New Taipei City")
     print(f"伺服器啟動，位址: http://{get_local_ip()}:8888")
     server = pywsgi.WSGIServer(('0.0.0.0', 8888), app)
     server.serve_forever()
