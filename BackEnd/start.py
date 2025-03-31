@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request, abort
 from transportation_path import TransportationPath
 from high_speed_rail import HighSpeedRail
 import json
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 path = TransportationPath()
@@ -20,6 +21,11 @@ def validate_time_format(time):
 def data_change(time, from_place, to_place):
     try:
         validate_time_format(time)
+        if not from_place:
+            raise ValueError("from_place input is empty")
+        if  not to_place:
+            raise ValueError("to_place input is empty")
+
         type = request.args.get('type', '')
 
         match type:
@@ -28,6 +34,7 @@ def data_change(time, from_place, to_place):
                 reserved = request.args.get('reserved', '')
                 if not discount.isdigit() or not reserved.isdigit():
                     raise ValueError("discount or reserved 錯誤")
+                time = (datetime.strptime(time, '%Y-%m-%d %H:%M') - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
                 val = HighSpeedRail(time, from_place, to_place, bool(discount), bool(reserved)).create()
                 if not val:
                     raise ValueError("查無資料")
