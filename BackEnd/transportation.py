@@ -1,6 +1,7 @@
 import sqlite3
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Union
 
 def get_db_connection(data_path):
     conn = sqlite3.connect(data_path)
@@ -76,8 +77,8 @@ class ComplexTransport(ABC):
         return self.paths
 
     @staticmethod
-    def _replace_part_of_path(transportation_src: Transportation | "ComplexTransport",
-                              transportation_inner: Transportation | "ComplexTransport",
+    def _replace_part_of_path(transportation_src: Union[Transportation, "ComplexTransport"],
+                              transportation_inner: Union[Transportation, "ComplexTransport"],
                               src_transfer_points: list,
                               inner_transfer_points: list,
                               condition_src_files,
