@@ -1,11 +1,14 @@
+import json
+import re
 import sys
 import traceback
-import re
-from flask import Flask, jsonify, request, abort
-from transportation_path import TransportationPath
-from high_speed_rail import HighSpeedRail
-import json
 from datetime import datetime, timedelta
+
+from flask import Flask, jsonify, request, abort
+from gevent import pywsgi
+
+from high_speed_rail import HighSpeedRail
+from transportation_path import TransportationPath
 
 app = Flask(__name__)
 path = TransportationPath()
@@ -43,7 +46,7 @@ def data_change(time, from_place, to_place):
                     raise ValueError("查詢時間與請求時間不符")
 
             case _:
-                raise ValueError("type 錯誤")
+                raise ValueError("type unknown")
 
         return jsonify(val)
 
@@ -67,6 +70,14 @@ def data_recommend_division(time, from_place, to_place):
         if not ignore_type.isdigit():
             raise ValueError("ignore_type error")
 
+        high_speed_rail_discount = request.args.get('HighSpeedRail_discount', '0')
+        high_speed_rail_reserved = request.args.get('HighSpeedRail_reserved', '1')
+        if not high_speed_rail_discount.isdigit():
+            raise ValueError("HighSpeedRail_discount error")
+        if not high_speed_rail_reserved.isdigit():
+            raise ValueError("HighSpeedRail_reserved error")
+
+
     except Exception as e:
         abort(400, str(e))
 
@@ -74,7 +85,9 @@ def data_recommend_division(time, from_place, to_place):
         data = path.get_division(start_date=time,
                                  departure_place=from_place,
                                  arrive_place=to_place,
-                                 mask=int(want_type) & ~int(ignore_type))
+                                 mask=int(want_type) & ~int(ignore_type),
+                                 high_speed_rail_discount=bool(high_speed_rail_discount),
+                                 high_speed_rail_reserved=bool(high_speed_rail_reserved))
         if not data:
             return jsonify({"status": "failure", "data": data})
         return jsonify({"status": "success", "data": data})
@@ -112,5 +125,21 @@ def data_recommend(time, from_place, to_place):
             "time": time
         }), 400, {'Content-Type': 'application/json'}
 
+@app.route('/exit', methods=['GET'])
+def exit():
+    user = request.args.get('user', '')
+    if user != 'admin':
+        return jsonify({"status": "failure"}), 401, {'Content-Type': 'application/json'}
+
+    password = request.args.get('password', '')
+    if password != '<PASSWORD>':
+        return jsonify({"status": "failure"}), 403, {'Content-Type': 'application/json'}
+
+    print("系統關閉")
+    server.stop()
+    return jsonify({"status": "success"}), 200, {'Content-Type': 'application/json'}
+
+
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True, port=8888, host='0.0.0.0')
+    server = pywsgi.WSGIServer(('0.0.0.0', 8888), app)
+    server.serve_forever()
