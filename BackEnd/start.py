@@ -14,29 +14,33 @@ def validate_time_format(time):
     if not re.match(pattern, time):
         raise ValueError(f"Time format is incorrect: {time}. Expected format is yyyy-mm-dd hh:mm")
 
-@app.route('/data/change/high_speed_rail/<time>_<from_place>_<to_place>_<discount>_<reserved>', methods=['GET'])
-def change_high_speed_rail(time, from_place, to_place, discount, reserved):
+
+
+@app.route('/data/change/<time>_<from_place>_<to_place>', methods=['GET'])
+def change_high_speed_rail(time, from_place, to_place):
     try:
-        # Log 請求資訊
-        print(f"收到請求: {time}, 從 {from_place} 到 {to_place}, 優惠 {discount}, 預約 {reserved}")
-
-        # 檢查時間格式
         validate_time_format(time)
+        type = request.args.get('type', '')
 
-        # 查詢資料
-        val = HighSpeedRail(time, from_place, to_place, discount, reserved).create()
-        if not val:
-            raise ValueError("查無資料")
-        val = val[0]
-        if val["departure_time"] != time:
-            raise ValueError("查詢時間與請求時間不符")
+        match type:
+            case 'high_speed_rail':
+                discount = request.args.get('discount', '')
+                reserved = request.args.get('reserved', '')
+                if not discount.isdigit() or not reserved.isdigit():
+                    raise ValueError("discount or reserved 錯誤")
+                val = HighSpeedRail(time, from_place, to_place, bool(discount), bool(reserved)).create()
+                if not val:
+                    raise ValueError("查無資料")
+                val = val[0]
+                if val["departure_time"] != time:
+                    raise ValueError("查詢時間與請求時間不符")
 
-        # 印出查詢結果
-        print("查詢成功，回傳資料筆數:", len(val))
+            case _:
+                raise ValueError("type 錯誤")
+
         return jsonify(val)
 
     except Exception as e:
-        print("發生錯誤：", e, file=sys.stderr)
         abort(400, str(e))
 
 
