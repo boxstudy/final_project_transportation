@@ -1,12 +1,14 @@
 import copy
 
-from transportation import Transportation, get_db_connection
+from transportation import Transportation, get_db_connection, DATA_PATH
 from datetime import datetime, timedelta
 
 
 class Bus(Transportation):
+    data_path = DATA_PATH + "Bus/"
+
     def __init__(self, departure_time: str, start: str, end: str):
-        super().__init__(departure_time, start, end, "Bus/")
+        super().__init__(departure_time, start, end)
 
 
 

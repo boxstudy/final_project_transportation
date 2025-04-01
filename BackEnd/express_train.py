@@ -1,7 +1,7 @@
 import copy
 from datetime import datetime, timedelta
 
-from transportation import Transportation, get_db_connection
+from transportation import Transportation, get_db_connection, DATA_PATH
 
 """
 轉乘路線站點
@@ -10,12 +10,14 @@ from transportation import Transportation, get_db_connection
      台東→枋寮→新左營 x 樹林→台東 : 臺東
 """
 class ExpressTrain(Transportation):
+
     Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
     Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
     Taidong_Xinzuoying = {"to": "南迴往西（臺東→枋寮→新左營）.db", "from": "南迴往東（新左營→枋寮→臺東）.db"}
+    data_path = DATA_PATH + "Express_Train/"
 
     def __init__(self, departure_time: str, start: str, end: str):
-        super().__init__(departure_time, start, end, "Express_Train/")
+        super().__init__(departure_time, start, end)
 
     def _count_distance(self, place1, place2, file):
         # print(f"place1: {place1}, place2: {place2}, file: {file}")

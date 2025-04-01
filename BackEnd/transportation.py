@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Union
 
+DATA_PATH = r"../data/"
+
 def get_db_connection(data_path):
     conn = sqlite3.connect(data_path)
     conn.row_factory = sqlite3.Row
@@ -15,11 +17,10 @@ def get_spend_path_minutes(path):
     return spend_time.total_seconds() / 60
 
 class Transportation(ABC):
-    def __init__(self, departure_time: str, start: str, end: str, folder: str):
+    def __init__(self, departure_time: str, start: str, end: str):
         self.departure_time = departure_time
         self.start = start
         self.end = end
-        self.data_path = r"../data/" + folder
         self.paths = []
 
     def reinit(self, departure_time: str, start: str, end: str):
@@ -62,6 +63,12 @@ class ComplexTransport(ABC):
         self.end = end
         self.paths = []
 
+    def reinit(self, departure_time: str, start: str, end: str):
+        self.departure_time = departure_time
+        self.start = start
+        self.end = end
+        return self
+
     @abstractmethod
     def _create(self):
         pass
@@ -82,7 +89,7 @@ class ComplexTransport(ABC):
                               src_transfer_points: list,
                               inner_transfer_points: list,
                               condition_src_files,
-                              order_table_col):
+                              order_path_table_col):
         if not transportation_src.paths:
             return []
 
@@ -114,10 +121,10 @@ class ComplexTransport(ABC):
                 if part['file'] not in condition_src_files:
                     continue
                 # 先獲取兩班車與transfer_points，會落在哪個位置，
-                conn = get_db_connection(transportation_src.data_path + part['file'])
+                data_path, table, col = order_path_table_col
+                conn = get_db_connection(data_path + part['file'])
                 cursor = conn.cursor()
                 try:
-                    table, col = order_table_col
                     cursor.execute(f"""SELECT {col} FROM {table}
                                         WHERE {col} IN ('{sql_transfer_points}', 
                                                       '{part['departure_place']}',
@@ -169,8 +176,8 @@ class ComplexTransport(ABC):
                         continue
 
                     list1 = transportation_src.reinit(departure_time=part['departure_time'],
-                                         start=part['departure_place'],
-                                         end=record[m]).create()
+                                                      start=part['departure_place'],
+                                                      end=record[m]).create()
                     if list1:
                         list1 = min(list1, key=get_spend_path_minutes)
 
@@ -183,7 +190,7 @@ class ComplexTransport(ABC):
                     list2 = min(list2, key=get_spend_path_minutes)
 
                     list3 = transportation_src.reinit(departure_time=list2[-1]['arrival_time'], start=record[n],
-                                         end=select_paths[i][-1]['arrival_place']).create()
+                                                      end=select_paths[i][-1]['arrival_place']).create()
                     if list3:
                         list3 = min(list3, key=get_spend_path_minutes)
 
@@ -198,6 +205,49 @@ class ComplexTransport(ABC):
 
         return res_paths
 
+    @staticmethod
+    def _switch_by_transfer_points(departure_time, departure_place, arrival_place,
+                                   transportation_a: "Transportation | ComplexTransport",
+                                   transportation_b: "Transportation | ComplexTransport",
+                                   transfer_points_a: list,
+                                   transfer_points_b: list
+                                   ):
+        transfer_point_i = 0
+        import sys
+        cost_time = sys.maxsize
+        for i in range(len(transfer_points_a)):
+            path_a = transportation_a.reinit(departure_time=departure_time, start=departure_place, end=transfer_points_a[i]).create()
+            if not path_a:
+                continue
+            path_a = min(path_a, key=get_spend_path_minutes)
 
+            path_b = transportation_b.reinit(departure_time=path_a[-1]['arrival_time'], start=transfer_points_b[i], end=arrival_place).create()
+            if not path_b:
+                continue
+            path_b = min(path_b, key=get_spend_path_minutes)
 
+            cost_time_tmp = get_spend_path_minutes(path_a + path_b)
+            if cost_time_tmp < cost_time:
+                cost_time = cost_time_tmp
+                transfer_point_i = i
+
+        transfer_point_a = transfer_points_a[transfer_point_i]
+        transfer_point_b = transfer_points_b[transfer_point_i]
+
+        paths = []
+
+        def transportation1_to_transportation2(transportation1, transportation2):
+            transportation1 = transportation1.reinit(departure_time, departure_place, transfer_point_a)
+            transportation1_path = transportation1.create()
+            if not transportation1_path:
+                return
+            for path in transportation1_path:
+                transportation2 = transportation2.reinit(path[-1]["arrival_time"], transfer_point_b, arrival_place)
+                transportation2_path = transportation2.create()
+                if transportation2_path:
+                    paths.append(path + min(transportation2_path, key=lambda x: x[0]["departure_time"]))
+
+        transportation1_to_transportation2(transportation_a, transportation_b)
+        transportation1_to_transportation2(transportation_b, transportation_a)
+        return paths
 

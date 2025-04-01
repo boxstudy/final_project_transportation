@@ -1,10 +1,13 @@
-from transportation import Transportation, get_db_connection
+from transportation import Transportation, get_db_connection, DATA_PATH
 import datetime
 
 
 class HighSpeedRail(Transportation):
+
+    data_path = DATA_PATH + "High_Speed_Rail/"
+
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
-        super().__init__(departure_time, start, end, "High_Speed_Rail/")
+        super().__init__(departure_time, start, end)
 
         self.discount = discount
         self.reserved_table = "reserved" if reserved is True else "non-reserved"

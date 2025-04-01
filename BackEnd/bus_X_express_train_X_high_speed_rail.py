@@ -18,4 +18,4 @@ class Bus_X_ExpressTrain_X_HighSpeedRail(ComplexTransport):
                                       ["板橋", "臺北", "新烏日", "新左營"],
                                       ["板橋", "臺北", "高鐵臺中", "高鐵左營"],
                                       ExpressTrain.Caozhou_Jilong.values(),
-                                      ("train", "車站"))
+                                      (ExpressTrain.data_path, "train", "車站"))
