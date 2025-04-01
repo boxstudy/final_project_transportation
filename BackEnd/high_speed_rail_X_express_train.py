@@ -17,9 +17,16 @@ class HighSpeedRail_X_ExpressTrain(ComplexTransport):
 
         ExpressTrain_transfer_points = ["板橋", "臺北", "新烏日", "新左營"]
         HighSpadeRail_transfer_points = ["板橋", "臺北", "高鐵臺中", "高鐵左營"]
-        self.paths = super()._replace_part_of_path(self.express_train,
+        self.paths.extend(super()._replace_part_of_path(self.express_train,
                                                   self.high_speed_rail,
                                                   ExpressTrain_transfer_points,
                                                   HighSpadeRail_transfer_points,
                                                   ExpressTrain.Caozhou_Jilong.values(),
-                                                   (ExpressTrain.data_path, "train", "車站"))
+                                                   (ExpressTrain.data_path, "train", "車站")))
+        self.paths.extend(super()._switch_by_transfer_points(departure_time=self.departure_time,
+                                                             departure_place=self.start,
+                                                             arrival_place=self.end,
+                                                             transportation_a=self.express_train,
+                                                             transportation_b=self.high_speed_rail,
+                                                             transfer_points_a=ExpressTrain_transfer_points,
+                                                             transfer_points_b=HighSpadeRail_transfer_points))
