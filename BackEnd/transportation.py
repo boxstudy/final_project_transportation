@@ -145,7 +145,7 @@ class ComplexTransport(ABC):
 
                 if departure_i == 0:
                     trans = [1]
-                elif record[departure_i] in sql_transfer_points:
+                elif record[departure_i] in src_transfer_points:
                     trans = [departure_i]
                 elif departure_i + 1 != arrival_i:
                     trans = [departure_i - 1, departure_i + 1]
@@ -154,7 +154,7 @@ class ComplexTransport(ABC):
 
                 if arrival_i is len(record) - 1:
                     trans = [(i, arrival_i - 1) for i in trans]
-                elif record[arrival_i] in sql_transfer_points:
+                elif record[arrival_i] in src_transfer_points:
                     trans = [(i, arrival_i) for i in trans]
                 elif arrival_i - 1 != departure_i:
                     trans = [(i, arrival_i - 1) for i in trans] + [(i, arrival_i + 1) for i in trans]
@@ -197,3 +197,7 @@ class ComplexTransport(ABC):
                     break
 
         return res_paths
+
+
+
+
