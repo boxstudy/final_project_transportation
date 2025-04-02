@@ -1,4 +1,6 @@
 import sqlite3
+import sys
+import traceback
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Union
@@ -15,6 +17,11 @@ def get_spend_path_minutes(path):
     arrive_time = datetime.strptime(path[-1]["arrival_time"], '%Y-%m-%d %H:%M')
     spend_time = arrive_time - departure_time
     return spend_time.total_seconds() / 60
+
+class TransportationError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 class Transportation(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
@@ -48,9 +55,13 @@ class Transportation(ABC):
             self._create_path()
             self._create_time()
             self._create_cost()
-        except Exception as e:
+        except TransportationError as e:
             self.paths = []
             print(e)
+        except Exception as e:
+            self.paths = []
+            print(e, file=sys.stderr)
+            traceback.print_exc()
         return self.paths
 
 
@@ -78,9 +89,13 @@ class ComplexTransport(ABC):
             if self.start == self.end:
                 return self.paths
             self._create()
-        except Exception as e:
+        except TransportationError as e:
             self.paths = []
             print(e)
+        except Exception as e:
+            self.paths = []
+            print(e, file=sys.stderr)
+            traceback.print_exc()
         return self.paths
 
     @staticmethod

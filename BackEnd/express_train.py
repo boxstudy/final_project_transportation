@@ -1,7 +1,7 @@
 import copy
 from datetime import datetime, timedelta
 
-from transportation import Transportation, get_db_connection, DATA_PATH
+from transportation import Transportation, get_db_connection, DATA_PATH, TransportationError
 
 """
 轉乘路線站點
@@ -54,7 +54,7 @@ class ExpressTrain(Transportation):
         if len(file_set) != 0:
             return file_set
 
-        raise ValueError(f"{station_name} is not found in any of the databases")
+        raise TransportationError(f"{station_name} is not found in any of the databases")
 
     def _check_route_direction(self, file, start_station, end_station):
         conn = get_db_connection(self.data_path + file)
@@ -68,7 +68,7 @@ class ExpressTrain(Transportation):
             cursor.close()
             conn.close()
         if records is None:
-            raise ValueError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
+            raise TransportationError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
         return records[0] == start_station
 
     def _create_path(self):
@@ -81,7 +81,7 @@ class ExpressTrain(Transportation):
         files1= self._find_table(self.start)
         files2 = self._find_table(self.end)
         if len(files1) == 0 or len(files2) == 0:
-            raise ValueError(f"Cannot find a valid route from {self.start} to {self.end}")
+            raise TransportationError(f"Cannot find a valid route from {self.start} to {self.end}")
 
         same_file = files1.intersection(files2)
         if len(same_file) > 0:
@@ -105,7 +105,7 @@ class ExpressTrain(Transportation):
                 file1 = counterclockwise_to_file[start] if distance1 < distance2 else clockwise_to_file[end]
                 file_set = frozenset({file1, file2})
             else:
-                raise ValueError(f"Cannot find a valid route from {self.start} to {self.end}")
+                raise TransportationError(f"Cannot find a valid route from {self.start} to {self.end}")
 
         transfer_points = {
             frozenset({self.Caozhou_Jilong["to"], self.Shulin_Taidong["to"]}): "臺北",
@@ -296,7 +296,7 @@ class ExpressTrain(Transportation):
                         cost = rate * distance
                         break
                 if cost == 0:
-                    raise ValueError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
+                    raise TransportationError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
                 route.update({"cost": round(cost)})
 

@@ -1,6 +1,6 @@
 import copy
 
-from transportation import Transportation, get_db_connection, DATA_PATH
+from transportation import Transportation, get_db_connection, DATA_PATH, TransportationError
 from datetime import datetime, timedelta
 
 
@@ -15,9 +15,9 @@ class Bus(Transportation):
     def _create_path(self):
         station = ["東華大學", "花蓮"]
         if self.start not in station:
-            raise ValueError(f"Invalid start place {self.start}")
+            raise TransportationError(f"Invalid start place {self.start}")
         if self.end not in station:
-            raise ValueError(f"Invalid end place {self.end}")
+            raise TransportationError(f"Invalid end place {self.end}")
 
         if self.start == "東華大學":
             file = "公車(往花蓮火車站).db"

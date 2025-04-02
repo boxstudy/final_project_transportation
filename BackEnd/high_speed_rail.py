@@ -30,7 +30,7 @@ class HighSpeedRail(Transportation):
         for _ in records:
             i += 1
         if i < 2:
-            raise ValueError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
+            raise TransportationError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
         return records[0][0] == start_station
 
     def _create_path(self):

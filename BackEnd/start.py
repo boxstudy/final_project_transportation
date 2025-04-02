@@ -18,6 +18,15 @@ def validate_time_format(time):
     if not re.match(pattern, time):
         raise ValueError(f"Time format is incorrect: {time}. Expected format is yyyy-mm-dd hh:mm")
 
+def strtobool(val):
+    val = str(val).lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    else:
+        raise ValueError(f"Invalid truth value '{val}'")
+
 
 
 @app.route('/data/change/<time>_<from_place>_<to_place>', methods=['GET'])
@@ -70,12 +79,8 @@ def data_recommend_division(time, from_place, to_place):
         if not ignore_type.isdigit():
             raise ValueError("ignore_type error")
 
-        high_speed_rail_discount = request.args.get('HighSpeedRail_discount', '0')
-        high_speed_rail_reserved = request.args.get('HighSpeedRail_reserved', '1')
-        if not high_speed_rail_discount.isdigit():
-            raise ValueError("HighSpeedRail_discount error")
-        if not high_speed_rail_reserved.isdigit():
-            raise ValueError("HighSpeedRail_reserved error")
+        high_speed_rail_discount = strtobool(request.args.get('HighSpeedRail_discount', 'off'))
+        high_speed_rail_reserved = strtobool(request.args.get('HighSpeedRail_reserved', 'on'))
 
 
     except Exception as e:
