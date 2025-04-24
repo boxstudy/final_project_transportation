@@ -66,7 +66,6 @@ class Transportation(ABC):
 
 
 
-
 class ComplexTransport(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
         self.departure_time = departure_time
@@ -105,6 +104,8 @@ class ComplexTransport(ABC):
                               inner_transfer_points: list,
                               condition_src_files,
                               order_path_table_col):
+        select_num = 3  # 最多選幾班車
+
         if not transportation_src.paths:
             return []
 
@@ -112,7 +113,7 @@ class ComplexTransport(ABC):
 
         # 找到有覆蓋dst線路的src，選src最快的幾台
         tmp_express_train_paths = sorted(transportation_src.paths, key=get_spend_path_minutes)
-        select_num = 2  # 最多選幾班車
+
 
         select_paths = []
         for path in tmp_express_train_paths:
@@ -194,6 +195,8 @@ class ComplexTransport(ABC):
                                                       start=part['departure_place'],
                                                       end=record[m]).create()
                     if list1:
+                        continue
+                    if part['departure_place'] != record[m]:
                         list1 = min(list1, key=get_spend_path_minutes)
 
                     # print("m, n", m, n)
@@ -202,11 +205,16 @@ class ComplexTransport(ABC):
                     list2 = transportation_inner.reinit(departure_time=list1[-1]['arrival_time'],
                                                         start=inner_transfer_points[src_transfer_points.index(record[m])],
                                                         end=inner_transfer_points[src_transfer_points.index(record[n])]).create()
+                    if not list2:
+                        continue
                     list2 = min(list2, key=get_spend_path_minutes)
 
-                    list3 = transportation_src.reinit(departure_time=list2[-1]['arrival_time'], start=record[n],
+                    list3 = transportation_src.reinit(departure_time=list2[-1]['arrival_time'],
+                                                      start=record[n],
                                                       end=select_paths[i][-1]['arrival_place']).create()
-                    if list3:
+                    if not list3:
+                        continue
+                    if record[n] != select_paths[i][-1]['arrival_place']:
                         list3 = min(list3, key=get_spend_path_minutes)
 
                     combined_list = list1 + list2 + list3

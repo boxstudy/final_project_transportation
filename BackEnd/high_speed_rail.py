@@ -1,4 +1,4 @@
-from transportation import Transportation, get_db_connection, DATA_PATH
+from transportation import Transportation, get_db_connection, DATA_PATH, TransportationError
 import datetime
 
 

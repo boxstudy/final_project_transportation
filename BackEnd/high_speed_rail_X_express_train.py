@@ -1,4 +1,3 @@
-import express_train
 from transportation import ComplexTransport
 from high_speed_rail import HighSpeedRail
 from express_train import ExpressTrain
@@ -30,3 +29,10 @@ class HighSpeedRail_X_ExpressTrain(ComplexTransport):
                                                              transportation_b=self.high_speed_rail,
                                                              transfer_points_a=ExpressTrain_transfer_points,
                                                              transfer_points_b=HighSpadeRail_transfer_points))
+
+if __name__ == "__main__":
+    import json
+
+    t = HighSpeedRail_X_ExpressTrain("2025-04-24 13:17", "新左營", "新營", False, True)
+    t.create()
+    print(json.dumps(t.paths, indent=2))

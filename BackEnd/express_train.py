@@ -1,6 +1,8 @@
 import copy
 from datetime import datetime, timedelta
 
+from flask import jsonify
+
 from transportation import Transportation, get_db_connection, DATA_PATH, TransportationError
 
 """
@@ -272,6 +274,7 @@ class ExpressTrain(Transportation):
 
     def _create_cost(self):
         for path_i in range(len(self.paths)):
+            dis = []
             for route_i in range(len(self.paths[path_i])):
                 route = self.paths[path_i][route_i]
 
@@ -288,19 +291,33 @@ class ExpressTrain(Transportation):
                     cursor.close()
                     conn.close()
                 distance = max(float(arrival_distance) - float(departure_distance), 10)
+                dis.append(distance)
                 # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
-                transportation_name = route.get("transportation_name")
+
+            pre_transportation_name = None
+            for route_i in range(len(self.paths[path_i]) - 1, -1, -1):
+                route = self.paths[path_i][route_i]
+                transportation_name = route["transportation_name"]
                 cost = 0
-                for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
-                    if name  in transportation_name:
-                        cost = rate * distance
+                for name, rate in (("莒光", 1.75), ("自強", 2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
+                    if name in transportation_name:
+                        if pre_transportation_name != transportation_name:
+                            cost = rate * dis[route_i]
+                        else:
+                            cost = rate * (dis[route_i] + dis[1 + route_i])
+                            route["arrival_place"] = self.paths[path_i][1 + route_i]["arrival_place"]
+                            route["arrival_time"] = self.paths[path_i][1 + route_i]["arrival_time"]
+                            self.paths[path_i].pop(1 + route_i)
                         break
+
                 if cost == 0:
                     raise TransportationError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
                 route.update({"cost": round(cost)})
+                pre_transportation_name = transportation_name
 
 if __name__ == "__main__":
-    t = ExpressTrain("2025-08-26 11:42", "新烏日", "新竹")
+    import json
+    t = ExpressTrain("2025-04-24 13:17", "新左營", "新營")
     t.create()
-    print(t.paths)
+    print(json.dumps(t.paths, indent=2))
