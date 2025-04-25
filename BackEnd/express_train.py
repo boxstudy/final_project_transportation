@@ -274,7 +274,47 @@ class ExpressTrain(Transportation):
 
     def _create_cost(self):
         for path_i in range(len(self.paths)):
-            dis = []
+            # dis = []
+            # for route_i in range(len(self.paths[path_i])):
+            #     route = self.paths[path_i][route_i]
+            #
+            #     conn = get_db_connection(self.data_path + route["file"])
+            #     cursor = conn.cursor()
+            #     try:
+            #         cursor.execute("""
+            #                         SELECT
+            #                             (SELECT 距離 FROM train WHERE 車站 = ?) AS 出發距離,
+            #                             (SELECT 距離 FROM train WHERE 車站 = ?) AS 到達距離
+            #                         """, (route.get("departure_place"), route.get("arrival_place")))
+            #         departure_distance, arrival_distance = cursor.fetchone()
+            #     finally:
+            #         cursor.close()
+            #         conn.close()
+            #     distance = max(float(arrival_distance) - float(departure_distance), 10)
+            #     dis.append(distance)
+            #     # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
+            #
+            # pre_transportation_name = None
+            # for route_i in range(len(self.paths[path_i]) - 1, -1, -1):
+            #     route = self.paths[path_i][route_i]
+            #     transportation_name = route["transportation_name"]
+            #     cost = 0
+            #     for name, rate in (("莒光", 1.75), ("自強", 2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
+            #         if name in transportation_name:
+            #             if pre_transportation_name != transportation_name:
+            #                 cost = rate * dis[route_i]
+            #             else:
+            #                 cost = rate * (dis[route_i] + dis[1 + route_i])
+            #                 route["arrival_place"] = self.paths[path_i][1 + route_i]["arrival_place"]
+            #                 route["arrival_time"] = self.paths[path_i][1 + route_i]["arrival_time"]
+            #                 self.paths[path_i].pop(1 + route_i)
+            #             break
+            #
+            #     if cost == 0:
+            #         raise TransportationError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
+            #
+            #     route.update({"cost": round(cost)})
+            #     pre_transportation_name = transportation_name
             for route_i in range(len(self.paths[path_i])):
                 route = self.paths[path_i][route_i]
 
@@ -291,30 +331,18 @@ class ExpressTrain(Transportation):
                     cursor.close()
                     conn.close()
                 distance = max(float(arrival_distance) - float(departure_distance), 10)
-                dis.append(distance)
                 # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
-
-            pre_transportation_name = None
-            for route_i in range(len(self.paths[path_i]) - 1, -1, -1):
-                route = self.paths[path_i][route_i]
-                transportation_name = route["transportation_name"]
+                transportation_name = route.get("transportation_name")
                 cost = 0
-                for name, rate in (("莒光", 1.75), ("自強", 2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
+                for name, rate in (("莒光", 1.75), ("自強",2.27), ("普悠瑪", 2.27), ("太魯閣", 2.27)):
                     if name in transportation_name:
-                        if pre_transportation_name != transportation_name:
-                            cost = rate * dis[route_i]
-                        else:
-                            cost = rate * (dis[route_i] + dis[1 + route_i])
-                            route["arrival_place"] = self.paths[path_i][1 + route_i]["arrival_place"]
-                            route["arrival_time"] = self.paths[path_i][1 + route_i]["arrival_time"]
-                            self.paths[path_i].pop(1 + route_i)
+                        cost = rate * distance
                         break
-
                 if cost == 0:
                     raise TransportationError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
                 route.update({"cost": round(cost)})
-                pre_transportation_name = transportation_name
+
 
 if __name__ == "__main__":
     import json
