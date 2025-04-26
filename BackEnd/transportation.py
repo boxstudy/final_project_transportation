@@ -268,9 +268,79 @@ class ComplexTransport(ABC):
                 transportation2 = transportation2.reinit(path[-1]["arrival_time"], transfer_point_b, arrival_place)
                 transportation2_path = transportation2.create()
                 if transportation2_path:
-                    paths.append(path + min(transportation2_path, key=lambda x: x[0]["departure_time"]))
+                    paths.append(path + min(transportation2_path, key=lambda x: x[0]["arrival_time"]))
 
         transportation1_to_transportation2(transportation_a, transportation_b)
         transportation1_to_transportation2(transportation_b, transportation_a)
+        return paths
+
+    @staticmethod
+    def _insert_transportation(departure_time, departure_place, arrival_place,
+                               transportation_src: "Transportation | ComplexTransport",
+                               transportation_inner: "Transportation | ComplexTransport",
+                               transfer_points_src: list,
+                               transfer_points_inner: list
+                               ):
+        paths_record1 = []
+        for i, point_src in enumerate(transfer_points_src):
+            transportation_src = transportation_src.reinit(departure_time=departure_time,
+                                                           start=departure_place,
+                                                           end=point_src)
+            if transportation_src.create():
+                paths_record1 += (i, transportation_src.paths)
+
+        paths_record2 = []
+        for i, point_inner in enumerate(transfer_points_inner):
+            transportation_inner = transportation_inner.reinit(departure_time=departure_time,
+                                                               start=point_inner,
+                                                               end=arrival_place)
+            if transportation_inner.create():
+                paths_record2 += (i, transportation_inner.paths)
+
+        if not paths_record1 or not paths_record2:
+            return []
+
+        min_record = min(paths_record1, key=lambda x: min(x[1], key=get_spend_path_minutes))
+        start_i, _ = min_record
+        min_record = min(paths_record2, key=lambda x: min(x[1], key=get_spend_path_minutes))
+        end_i, _ = min_record
+
+        if start_i == end_i:
+            return []
+
+        transportation_src = transportation_src.reinit(departure_time=departure_time,
+                                                       start=departure_place,
+                                                       end=transfer_points_src[start_i])
+        paths1 = transportation_src.create()
+
+        paths2 = []
+        for path in paths1:
+            transportation_inner = transportation_inner.reinit(departure_time=path[-1]["arrival_time"],
+                                                               start=transfer_points_inner[start_i],
+                                                               end=transfer_points_inner[end_i])
+            if transportation_inner.create():
+                paths2 += path + min(transportation_inner.paths, key=lambda x: x[-1]["arrival_time"])
+
+        paths3 = []
+        for path in paths2:
+            transportation_src = transportation_src.reinit(departure_time=path[-1]["arrival_time"],
+                                                           start=transfer_points_src[end_i],
+                                                           end=arrival_place)
+            if transportation_src.create():
+                paths3 += path + min(transportation_src.paths, key=lambda x: x[-1]["arrival_time"])
+
+        transportation_src = transportation_src.reinit(departure_time=departure_time,
+                                                       start=departure_place,
+                                                       end=arrival_place)
+        if not transportation_src.create():
+            return []
+
+        paths = []
+        path_src = min(transportation_src.paths, key=lambda x: x[-1]["arrival_time"])
+        time_src = get_spend_path_minutes(path_src)
+        for path in paths3:
+            if time_src > get_spend_path_minutes(path):
+                paths.append(path)
+
         return paths
 
