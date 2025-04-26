@@ -16,7 +16,7 @@ class Bus_X_ExpressTrain(ComplexTransport):
             express_train = ExpressTrain(path[-1]["arrival_time"], "花蓮", self.end)
             express_train_path = express_train.create()
             if express_train_path:
-                self.paths.append(path + min(express_train_path, key=lambda x: x[0]["departure_time"]))
+                self.paths.append(path + min(express_train_path, key=lambda x: x[-1]["arrival_time"]))
 
     def _create_express_train_to_bus(self):
         express_train = ExpressTrain(self.departure_time, self.start, "花蓮")
@@ -27,7 +27,7 @@ class Bus_X_ExpressTrain(ComplexTransport):
             bus = Bus(path[-1]["arrival_time"], "花蓮", self.end)
             bus_path = bus.create()
             if bus_path:
-                self.paths.append(path + min(bus_path, key=lambda x: x[0]["departure_time"]))
+                self.paths.append(path + min(bus_path, key=lambda x: x[-1]["arrival_time"]))
 
     def _create(self):
         self._create_bus_to_express_train()

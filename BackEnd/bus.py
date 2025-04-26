@@ -28,7 +28,7 @@ class Bus(Transportation):
                         "arrival_place": self.end}]]
 
     def _create_time(self):
-        num = 1  # number of bus
+        num = 4  # number of bus
         for i in range(num - 1):
             self.paths.append(copy.deepcopy(self.paths[0]))
 
@@ -43,8 +43,8 @@ class Bus(Transportation):
             conn.close()
 
         # 找到所有比 departure_time 晚的時間
-        # print(type(bus_times[0]), bus_times)
-        later_times = [time for time in bus_times if time > self.departure_time]
+        dt = datetime.strptime(self.departure_time, "%Y-%m-%d %H:%M").strftime("%H:%M")
+        later_times = [time for time in bus_times if time > dt]
         later_times.sort()
 
 
