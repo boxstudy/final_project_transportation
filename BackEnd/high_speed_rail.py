@@ -163,15 +163,4 @@ class HighSpeedRail(Transportation):
                     cursor.close()
                     conn.close()
 
-                route.update({"cost": float(records[0])})
-
-    def is_in(self, pos):
-        conn = get_db_connection(self.data_path + self.ZuoYing_NanGang["to"])
-        cursor = conn.cursor()
-        try:
-            cursor.execute(f"SELECT 車站 FROM local_train WHERE 車站 IN ('{pos}')")
-            records = cursor.fetchone()
-        finally:
-            cursor.close()
-            conn.close()
-        return not records
+                route.update({"cost": int(records[0])})
