@@ -163,4 +163,4 @@ class HighSpeedRail(Transportation):
                     cursor.close()
                     conn.close()
 
-                route.update({"cost": records[0]})
+                route.update({"cost": float(records[0])})
