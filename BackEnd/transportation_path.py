@@ -1,6 +1,6 @@
 from bus import Bus
 from bus_X_express_train import Bus_X_ExpressTrain
-from bus_X_express_train_X_high_speed_rail import Bus_X_ExpressTrain_X_HighSpeedRail
+from bus_X_high_speed_rail_X_express_train import Bus_X_HighSpeedRail_X_ExpressTrain
 from high_speed_rail_X_express_train import HighSpeedRail_X_ExpressTrain
 from express_train import ExpressTrain
 from high_speed_rail import HighSpeedRail
@@ -90,7 +90,7 @@ class TransportationPath:
 
         if mask & (Type.bus | Type.express_train | Type.high_speed_rail):
             print("Bus X Express Train X High Speed Rail:")
-            bus_x_express_train_x_high_speed_rail = Bus_X_ExpressTrain_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place,
+            bus_x_express_train_x_high_speed_rail = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
                                                                                        discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
             bus_x_express_train_x_high_speed_rail_paths = bus_x_express_train_x_high_speed_rail.create()
             self._simplify_paths(bus_x_express_train_x_high_speed_rail_paths)
@@ -135,8 +135,8 @@ class TransportationPath:
         paths.extend(Bus_X_ExpressTrain_paths)
 
         print("6.Bus X Express Train X High Speed Rail:")
-        Bus_X_ExpressTrain_X_HighSpeedRail_paths = Bus_X_ExpressTrain_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place,
-                                                                                       discount=False, reserved=True).create()
+        Bus_X_ExpressTrain_X_HighSpeedRail_paths = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
+                                                                                      discount=False, reserved=True).create()
         paths.extend(Bus_X_ExpressTrain_X_HighSpeedRail_paths)
 
 

@@ -2,34 +2,34 @@ from local_train import LocalTrain
 from express_train import ExpressTrain
 from transportation import ComplexTransport
 
-class Bus_X_ExpressTrain_X_ExpressTrain(ComplexTransport):
+class LocalTrain_X_ExpressTrain(ComplexTransport):
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end)
         self.local_train = LocalTrain("", "", "")
-        self.high_speed_rail = ExpressTrain("", "", "")
+        self.express_train = ExpressTrain("", "", "")
 
     def _create(self):
         if self.local_train.paths:
             self.local_train.create()
 
         LocalTrain_transfer_points = ['七堵', '中壢', '光復', '南港', '吉安', '嘉義', '壽豐', '大甲', '宜蘭', '富里', '屏東', '彰化', '後龍', '志學', '新城', '新左營', '新竹', '松山', '板橋', '枋寮', '桃園', '樹林', '池上', '沙鹿', '清水', '潮州', '玉里', '瑞穗', '知本', '竹南', '羅東', '臺中', '臺北', '臺南', '臺東', '花蓮', '苑裡', '苗栗', '豐原', '通霄', '關山', '高雄', '鳳山', '鳳林', '鹿野']
-        HighSpadeRail_transfer_points = ['七堵', '中壢', '光復', '南港', '吉安', '嘉義', '壽豐', '大甲', '宜蘭', '富里', '屏東', '彰化', '後龍', '志學', '新城', '新左營', '新竹', '松山', '板橋', '枋寮', '桃園', '樹林', '池上', '沙鹿', '清水', '潮州', '玉里', '瑞穗', '知本', '竹南', '羅東', '臺中', '臺北', '臺南', '臺東', '花蓮', '苑裡', '苗栗', '豐原', '通霄', '關山', '高雄', '鳳山', '鳳林', '鹿野']
+        ExpressTrain_transfer_points = ['七堵', '中壢', '光復', '南港', '吉安', '嘉義', '壽豐', '大甲', '宜蘭', '富里', '屏東', '彰化', '後龍', '志學', '新城', '新左營', '新竹', '松山', '板橋', '枋寮', '桃園', '樹林', '池上', '沙鹿', '清水', '潮州', '玉里', '瑞穗', '知本', '竹南', '羅東', '臺中', '臺北', '臺南', '臺東', '花蓮', '苑裡', '苗栗', '豐原', '通霄', '關山', '高雄', '鳳山', '鳳林', '鹿野']
 
         self.paths += super()._switch_by_transfer_points(departure_time=self.departure_time,
-                                                     departure_place=self.start,
-                                                     arrival_place=self.end,
-                                                     transportation_a=self.local_train,
-                                                     transportation_b=self.high_speed_rail,
-                                                     transfer_points_a=LocalTrain_transfer_points,
-                                                     transfer_points_b=HighSpadeRail_transfer_points)
+                                                         departure_place=self.start,
+                                                         arrival_place=self.end,
+                                                         transportation_a=self.local_train,
+                                                         transportation_b=self.express_train,
+                                                         transfer_points_a=LocalTrain_transfer_points,
+                                                         transfer_points_b=ExpressTrain_transfer_points)
 
         self.paths += super()._insert_transportation(departure_time=self.departure_time,
                                                      departure_place=self.start,
                                                      arrival_place=self.end,
                                                      transportation_src=self.local_train,
-                                                     transportation_inner=self.high_speed_rail,
+                                                     transportation_inner=self.express_train,
                                                      transfer_points_src=LocalTrain_transfer_points,
-                                                     transfer_points_inner=HighSpadeRail_transfer_points)
+                                                     transfer_points_inner=ExpressTrain_transfer_points)
 
 
 if __name__ == "__main__":
