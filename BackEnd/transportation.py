@@ -20,21 +20,21 @@ def get_spend_path_minutes(path):
 
 class TransportationError(Exception):
     def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+        super().__init__(message)
 
 class Transportation(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
+        self._reset(departure_time, start, end)
+
+    def reinit(self, departure_time: str, start: str, end: str):
+        self._reset(departure_time, start, end)
+        return self
+
+    def _reset(self, departure_time: str, start: str, end: str):
         self.departure_time = departure_time
         self.start = start
         self.end = end
         self.paths = []
-
-    def reinit(self, departure_time: str, start: str, end: str):
-        self.departure_time = departure_time
-        self.start = start
-        self.end = end
-        return self
 
     @abstractmethod
     def _create_path(self):
@@ -68,16 +68,17 @@ class Transportation(ABC):
 
 class ComplexTransport(ABC):
     def __init__(self, departure_time: str, start: str, end: str):
+        self._reset(departure_time, start, end)
+
+    def reinit(self, departure_time: str, start: str, end: str):
+        self._reset(departure_time, start, end)
+        return self
+
+    def _reset(self, departure_time: str, start: str, end: str):
         self.departure_time = departure_time
         self.start = start
         self.end = end
         self.paths = []
-
-    def reinit(self, departure_time: str, start: str, end: str):
-        self.departure_time = departure_time
-        self.start = start
-        self.end = end
-        return self
 
     @abstractmethod
     def _create(self):
@@ -155,7 +156,7 @@ class ComplexTransport(ABC):
                     continue
 
                 # 如果都在 "板橋" 往北，"新左營" 往南，則不考慮，
-                if record[1] is part['departure_place'] or record[-2] is part['arrival_place']:
+                if record[1] == part['arrival_place'] or record[-2] == part['departure_place']:
                     continue
 
                 if len(record) + 2 == len(src_transfer_points) and len(select_paths[i]) == 1:
@@ -175,7 +176,7 @@ class ComplexTransport(ABC):
                 else:
                     trans = [departure_i - 1]
 
-                if arrival_i is len(record) - 1:
+                if arrival_i == len(record) - 1:
                     trans = [(i, arrival_i - 1) for i in trans]
                 elif record[arrival_i] in src_transfer_points:
                     trans = [(i, arrival_i) for i in trans]
@@ -194,7 +195,7 @@ class ComplexTransport(ABC):
                     list1 = transportation_src.reinit(departure_time=part['departure_time'],
                                                       start=part['departure_place'],
                                                       end=record[m]).create()
-                    if list1:
+                    if not list1:
                         continue
                     if part['departure_place'] != record[m]:
                         list1 = min(list1, key=get_spend_path_minutes)
