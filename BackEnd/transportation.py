@@ -301,9 +301,14 @@ class ComplexTransport(ABC):
         if not paths_record1 or not paths_record2:
             return []
 
-        min_record = min(paths_record1, key=lambda x: min(x[1], key=get_spend_path_minutes))
+        # def func(x):
+        #     a = min(x[1], key=lambda y: y[-1]["arrival_time"])
+        #     print(a, '=====================================================================')
+        #     return a
+
+        min_record = min(paths_record1, key=lambda x: min(x[1], key=get_spend_path_minutes)[-1]["arrival_time"])
         start_i, _ = min_record
-        min_record = min(paths_record2, key=lambda x: min(x[1], key=get_spend_path_minutes))
+        min_record = min(paths_record2, key=lambda x: min(x[1], key=get_spend_path_minutes)[-1]["arrival_time"])
         end_i, _ = min_record
 
         if start_i == end_i:
@@ -320,7 +325,7 @@ class ComplexTransport(ABC):
                                                                start=transfer_points_inner[start_i],
                                                                end=transfer_points_inner[end_i])
             if transportation_inner.create():
-                paths2 += path + min(transportation_inner.paths, key=lambda x: x[-1]["arrival_time"])
+                paths2.append(path + min(transportation_inner.paths, key=lambda x: x[-1]["arrival_time"]))
 
         paths3 = []
         for path in paths2:
@@ -328,7 +333,7 @@ class ComplexTransport(ABC):
                                                            start=transfer_points_src[end_i],
                                                            end=arrival_place)
             if transportation_src.create():
-                paths3 += path + min(transportation_src.paths, key=lambda x: x[-1]["arrival_time"])
+                paths3.append(path + min(transportation_src.paths, key=lambda x: x[-1]["arrival_time"]))
 
         transportation_src = transportation_src.reinit(departure_time=departure_time,
                                                        start=departure_place,
