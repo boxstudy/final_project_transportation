@@ -6,7 +6,7 @@ class LocalTrain_X_HighSpeedRail(ComplexTransport):
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end)
         self.local_train = LocalTrain("", "", "")
-        self.high_speed_rail = HighSpeedRail("", "", "")
+        self.high_speed_rail = HighSpeedRail("", "", "", discount, reserved)
 
     def _create(self):
         if self.local_train.paths:

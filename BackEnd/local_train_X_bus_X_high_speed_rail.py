@@ -2,11 +2,11 @@ from local_train_X_high_speed_rail import LocalTrain_X_HighSpeedRail
 from bus import Bus
 from transportation import ComplexTransport
 
-class LocalTrain_X_Bus_X_ExpressTrain(ComplexTransport):
+class LocalTrain_X_Bus_X_HighSpeedRail(ComplexTransport):
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end)
         self.bus = Bus("", "", "")
-        self.local_train_X_high_speed_rail = LocalTrain_X_HighSpeedRail("", "", "")
+        self.local_train_X_high_speed_rail = LocalTrain_X_HighSpeedRail("", "", "", discount=False, reserved=False)
 
     def _create(self):
 

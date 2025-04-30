@@ -3,7 +3,7 @@ from express_train import ExpressTrain
 from transportation import ComplexTransport
 
 class LocalTrain_X_ExpressTrain(ComplexTransport):
-    def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
+    def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end)
         self.local_train = LocalTrain("", "", "")
         self.express_train = ExpressTrain("", "", "")

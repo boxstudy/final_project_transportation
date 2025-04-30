@@ -288,7 +288,7 @@ class ComplexTransport(ABC):
                                                            start=departure_place,
                                                            end=point_src)
             if transportation_src.create():
-                paths_record1 += (i, transportation_src.paths)
+                paths_record1.append((i, transportation_src.paths))
 
         paths_record2 = []
         for i, point_inner in enumerate(transfer_points_inner):
@@ -296,7 +296,7 @@ class ComplexTransport(ABC):
                                                                start=point_inner,
                                                                end=arrival_place)
             if transportation_inner.create():
-                paths_record2 += (i, transportation_inner.paths)
+                paths_record2.append((i, transportation_inner.paths))
 
         if not paths_record1 or not paths_record2:
             return []

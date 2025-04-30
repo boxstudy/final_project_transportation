@@ -2,8 +2,6 @@ import copy
 from datetime import datetime, timedelta
 from enum import Enum
 
-from matplotlib.style.core import available
-
 from transportation import Transportation, get_db_connection, DATA_PATH, TransportationError
 
 """
@@ -16,8 +14,8 @@ class LocalTrain(Transportation):
     file2 = {"to": "西區間(彰化→嘉義).db", "from": "西區間(嘉義→彰化).db"}
     file3 = {"to": "西區間(嘉義→高雄).db", "from": "西區間(高雄→嘉義).db"}
     file4 = {"to": "西區間(新左營→枋寮).db", "from": "西區間(枋寮→新左營).db"}
-    file5 = {"to": "南迴(枋寮→臺東).db", "from": "南迴(台東→枋寮).db"}
-    file6 = {"to": "東區間(台東→花蓮).db", "from": "東區間(花蓮→台東).db"}
+    file5 = {"to": "南迴(枋寮→臺東).db", "from": "南迴(臺東→枋寮).db"}
+    file6 = {"to": "東區間(臺東→花蓮).db", "from": "東區間(花蓮→臺東).db"}
     file7 = {"to": "東區間(花蓮→蘇澳新).db", "from": "東區間(蘇澳新→花蓮).db"}
     file8 = {"to": "東區間(蘇澳→臺北).db", "from": "東區間(臺北→蘇澳).db"}
 
@@ -551,10 +549,9 @@ class LocalTrain(Transportation):
                                 format_arrival_time += timedelta(days=1)
 
                             fast_trains.append({
-                                "train_number": train_no,
+                                "transportation_name": train_no,
                                 "departure_time": format_departure_time.strftime("%Y-%m-%d %H:%M"),
                                 "arrival_time": format_arrival_time.strftime("%Y-%m-%d %H:%M"),
-                                "transportation_name": "Local Train"
                             })
 
         # 排序
@@ -564,10 +561,9 @@ class LocalTrain(Transportation):
         if len(fast_trains) < number_of_trains:
             while len(fast_trains) < number_of_trains:
                 fast_trains.append({
-                    "train_number": None,
+                    "transportation_name": None,
                     "departure_time": None,
                     "arrival_time": None,
-                    "transportation_name": "Local Train"
                 })
 
         return fast_trains[:number_of_trains]
@@ -577,59 +573,53 @@ class LocalTrain(Transportation):
 
 
     def _create_cost(self):
-        def _create_cost(self):
-            for path_i in range(len(self.paths)):
-                for route_i in range(len(self.paths[path_i])):
-                    route = self.paths[path_i][route_i]
+        for path_i in range(len(self.paths)):
+            for route_i in range(len(self.paths[path_i])):
+                route = self.paths[path_i][route_i]
 
-                    conn = get_db_connection(self.data_path + route["file"])
-                    cursor = conn.cursor()
-                    try:
+                conn = get_db_connection(self.data_path + route["file"])
+                cursor = conn.cursor()
+                try:
+                    if route["file"] not in self.file1.values():
                         cursor.execute("""
                                         SELECT 
-                                            (SELECT 距離 FROM train WHERE 車站 = ?) AS 出發距離,
-                                            (SELECT 距離 FROM train WHERE 車站 = ?) AS 到達距離
+                                            (SELECT 距離 FROM local_train WHERE 車站 = ?) AS 出發距離,
+                                            (SELECT 距離 FROM local_train WHERE 車站 = ?) AS 到達距離
                                         """,
-                                       (route.get("departure_place"), route.get("arrival_place")))
+                                       (route["departure_place"], route["arrival_place"]))
                         departure_distance, arrival_distance = cursor.fetchone()
-
-                        if route["file"] not in self.file1.values():
+                    else:
+                        cursor.execute("""
+                                        SELECT 
+                                            (SELECT 距離 FROM local_train_coast WHERE 車站 = ?) AS 出發距離,
+                                            (SELECT 距離 FROM local_train_coast WHERE 車站 = ?) AS 到達距離
+                                        """,
+                                       (route["departure_place"], route["arrival_place"]))
+                        departure_distance, arrival_distance = cursor.fetchone()
+                        if not departure_distance or not arrival_distance:
                             cursor.execute("""
                                             SELECT 
-                                                (SELECT 距離 FROM local_train WHERE 車站 = ?) AS 出發距離,
-                                                (SELECT 距離 FROM local_train WHERE 車站 = ?) AS 到達距離
+                                                (SELECT 距離 FROM local_train_mountain WHERE 車站 = ?) AS 出發距離,
+                                                (SELECT 距離 FROM local_train_mountain WHERE 車站 = ?) AS 到達距離
                                             """,
-                                           (route.get("departure_place"), route.get("arrival_place")))
-                        else:
-                            cursor.execute("""
-                                            SELECT 
-                                                (SELECT 距離 FROM local_train_coast WHERE 車站 = ?) AS 出發距離,
-                                                (SELECT 距離 FROM local_train_coast WHERE 車站 = ?) AS 到達距離
-                                            """,
-                                           (route.get("departure_place"), route.get("arrival_place")))
-                            if not cursor.fetchone():
-                                cursor.execute("""
-                                                SELECT 
-                                                    (SELECT 距離 FROM local_train_mountain WHERE 車站 = ?) AS 出發距離,
-                                                    (SELECT 距離 FROM local_train_mountain WHERE 車站 = ?) AS 到達距離
-                                                """,
-                                               (route.get("departure_place"), route.get("arrival_place")))
-                        departure_distance, arrival_distance = cursor.fetchone()
-                    finally:
-                        cursor.close()
-                        conn.close()
-                    distance = max(float(arrival_distance) - float(departure_distance), 10)
-                    # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
-                    transportation_name = route.get("transportation_name")
-                    cost = 0
-                    for name, rate in (("區間", 1.06)):
-                        if name in transportation_name:
-                            cost = rate * distance
-                            break
-                    if cost == 0:
-                        raise TransportationError(f"transportation {transportation_name} not in 區間")
+                                           (route["departure_place"], route["arrival_place"]))
+                            departure_distance, arrival_distance = cursor.fetchone()
 
-                    route.update({"cost": round(cost)})
+                finally:
+                    cursor.close()
+                    conn.close()
+                distance = max(float(arrival_distance) - float(departure_distance), 10)
+                # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
+                transportation_name = route.get("transportation_name")
+                cost = 0
+                for name, rate in (("區間", 1.06), ("自強", 2.27)):
+                    if name in transportation_name:
+                        cost = rate * distance
+                        break
+                if cost == 0:
+                    raise TransportationError(f"transportation {transportation_name} not in 區間")
+
+                route.update({"cost": round(cost)})
 
 
     def _find_file(self, station1):

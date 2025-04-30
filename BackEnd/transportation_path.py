@@ -4,6 +4,14 @@ from bus_X_high_speed_rail_X_express_train import Bus_X_HighSpeedRail_X_ExpressT
 from high_speed_rail_X_express_train import HighSpeedRail_X_ExpressTrain
 from express_train import ExpressTrain
 from high_speed_rail import HighSpeedRail
+from local_train import LocalTrain
+from local_train_X_bus import LocalTrain_X_Bus
+from local_train_X_bus_X_express_train import LocalTrain_X_Bus_X_ExpressTrain
+from local_train_X_bus_X_high_speed_rail import LocalTrain_X_Bus_X_HighSpeedRail
+from local_train_X_bus_X_high_speed_rail_X_express_train import LocalTrain_X_Bus_X_HighSpeedRail_X_ExpressTrain
+from local_train_X_express_train import LocalTrain_X_ExpressTrain
+from local_train_X_high_speed_rail import LocalTrain_X_HighSpeedRail
+from local_train_X_high_speed_rail_X_express_train import LocalTrain_X_HighSpeedRail_X_ExpressTrain
 
 
 class TransportationPath:
@@ -22,10 +30,10 @@ class TransportationPath:
             while j > 0:
                 if (path[j - 1]["type"] == path[j]["type"] and
                         path[j - 1]["transportation_name"] == path[j]["transportation_name"] and
-                        datetime.strptime(path[j - 1]["arrive_time"], "%Y-%m-%d %H:%M") + timedelta(minutes=10) <
+                        datetime.strptime(path[j - 1]["arrival_time"], "%Y-%m-%d %H:%M") + timedelta(minutes=10) <
                         datetime.strptime(path[j]["departure_time"], "%Y-%m-%d %H:%M")):
-                    path[j - 1]["arrive_time"] = path[j]["arrive_time"]
-                    path[j - 1]["arrive_place"] = path[j]["arrive_place"]
+                    path[j - 1]["arrival_time"] = path[j]["arrival_time"]
+                    path[j - 1]["arrival_place"] = path[j]["arrival_place"]
                     path[j - 1]["cost"] += path[j]["cost"]
                     path.pop(j)
                 j -= 1
@@ -43,6 +51,7 @@ class TransportationPath:
             high_speed_rail = 0x1
             express_train = 0x2
             bus = 0x4
+            local_train = 0x8
 
         paths = {}
 
@@ -71,6 +80,14 @@ class TransportationPath:
             self._remove_file_from_paths(bus_paths)
             paths.update({Type.bus: bus_paths})
 
+        if mask & Type.local_train:
+            print("Local Train:")
+            local_train = LocalTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+            local_train_paths = local_train.create()
+            self._simplify_paths(local_train_paths)
+            self._remove_file_from_paths(local_train_paths)
+            paths.update({Type.local_train: local_train_paths})
+
         if mask & (Type.high_speed_rail | Type.express_train):
             print("High Speed Rail X Express Train:")
             high_speed_rail_express_train = HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
@@ -88,14 +105,70 @@ class TransportationPath:
             self._remove_file_from_paths(bus_x_express_train_paths)
             paths.update({Type.bus | Type.express_train: bus_x_express_train_paths})
 
-        if mask & (Type.bus | Type.express_train | Type.high_speed_rail):
-            print("Bus X Express Train X High Speed Rail:")
-            bus_x_express_train_x_high_speed_rail = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
+        if mask & (Type.bus | Type.high_speed_rail | Type.express_train):
+            print("Bus X High Speed Rail X Express Train:")
+            bus_x_high_speed_rail_x_express_train = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
                                                                                        discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
-            bus_x_express_train_x_high_speed_rail_paths = bus_x_express_train_x_high_speed_rail.create()
-            self._simplify_paths(bus_x_express_train_x_high_speed_rail_paths)
-            self._remove_file_from_paths(bus_x_express_train_x_high_speed_rail_paths)
-            paths.update({Type.bus | Type.express_train | Type.high_speed_rail: bus_x_express_train_x_high_speed_rail_paths})
+            bus_x_high_speed_rail_x_express_train_paths = bus_x_high_speed_rail_x_express_train.create()
+            self._simplify_paths(bus_x_high_speed_rail_x_express_train_paths)
+            self._remove_file_from_paths(bus_x_high_speed_rail_x_express_train_paths)
+            paths.update({Type.bus | Type.express_train | Type.high_speed_rail: bus_x_high_speed_rail_x_express_train_paths})
+
+        if mask & (Type.local_train | Type.high_speed_rail):
+            print("Local Train X High Speed Rail:")
+            local_train_x_high_speed_rail = LocalTrain_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
+            local_train_x_high_speed_rail_paths = local_train_x_high_speed_rail.create()
+            self._simplify_paths(local_train_x_high_speed_rail_paths)
+            self._remove_file_from_paths(local_train_x_high_speed_rail_paths)
+            paths.update({Type.local_train | Type.high_speed_rail: local_train_x_high_speed_rail_paths})
+
+        if mask & (Type.local_train | Type.express_train):
+            print("Local Train X Express Train:")
+            local_train_x_express_train = LocalTrain_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+            local_train_x_express_train_paths = local_train_x_express_train.create()
+            self._simplify_paths(local_train_x_express_train_paths)
+            self._remove_file_from_paths(local_train_x_express_train_paths)
+            paths.update({Type.local_train | Type.express_train: local_train_x_express_train_paths})
+
+        if mask & (Type.local_train | Type.bus):
+            print("Local Train X High Speed Rail X Express Train:")
+            local_train_x_bus = LocalTrain_X_Bus(departure_time=start_date, start=departure_place, end=arrive_place)
+            local_train_x_bus_paths = local_train_x_bus.create()
+            self._simplify_paths(local_train_x_bus_paths)
+            self._remove_file_from_paths(local_train_x_bus_paths)
+            paths.update({Type.local_train | Type.bus: local_train_x_bus_paths})
+
+        if mask & (Type.local_train | Type.high_speed_rail | Type.express_train):
+            print("Local Train X High Speed Rail X Express Train:")
+            local_train_x_high_speed_rail_x_express_train = LocalTrain_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
+            local_train_x_high_speed_rail_x_express_train_paths = local_train_x_high_speed_rail_x_express_train.create()
+            self._simplify_paths(local_train_x_high_speed_rail_x_express_train_paths)
+            self._remove_file_from_paths(local_train_x_high_speed_rail_x_express_train_paths)
+            paths.update({Type.local_train | Type.high_speed_rail | Type.express_train: local_train_x_high_speed_rail_x_express_train_paths})
+
+        if mask & (Type.local_train | Type.bus | Type.high_speed_rail):
+            print("Local Train X Bus X High Speed Rail:")
+            local_train_x_bus_x_high_speed_rail = LocalTrain_X_Bus_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
+            local_train_x_bus_x_high_speed_rail_paths = local_train_x_bus_x_high_speed_rail.create()
+            self._simplify_paths(local_train_x_bus_x_high_speed_rail_paths)
+            self._remove_file_from_paths(local_train_x_bus_x_high_speed_rail_paths)
+            paths.update({Type.local_train | Type.bus | Type.high_speed_rail: local_train_x_bus_x_high_speed_rail_paths})
+
+        if mask & (Type.local_train | Type.bus | Type.express_train):
+            print("Local Train X Bus X Express Train:")
+            local_train_x_bus_x_express_train = LocalTrain_X_Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+            local_train_x_bus_x_express_train_paths = local_train_x_bus_x_express_train.create()
+            self._simplify_paths(local_train_x_bus_x_express_train_paths)
+            self._remove_file_from_paths(local_train_x_bus_x_express_train_paths)
+            paths.update({Type.local_train | Type.bus | Type.express_train: local_train_x_bus_x_express_train_paths})
+
+        if mask & (Type.local_train | Type.bus | Type.high_speed_rail | Type.express_train):
+            print("Local Train X Bus X High Speed Rail X Express Train:")
+            local_train_x_bus_x_high_speed_rail_x_express_train = LocalTrain_X_Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=high_speed_rail_discount, reserved=high_speed_rail_reserved)
+            local_train_x_bus_x_high_speed_rail_x_express_train_paths = local_train_x_bus_x_high_speed_rail_x_express_train.create()
+            self._simplify_paths(local_train_x_bus_x_high_speed_rail_x_express_train_paths)
+            self._remove_file_from_paths(local_train_x_bus_x_high_speed_rail_x_express_train_paths)
+            paths.update({Type.local_train | Type.bus | Type.high_speed_rail | Type.express_train: local_train_x_bus_x_high_speed_rail_x_express_train_paths})
 
         return paths
 
@@ -111,33 +184,75 @@ class TransportationPath:
         # ]
         paths = []
 
-        print("1.High Speed Rail:")
-        high_speed_rail = HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
-        high_speed_rail_paths = high_speed_rail.create()
-        paths.extend(high_speed_rail_paths)
+        # print("High Speed Rail:")
+        # high_speed_rail = HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        # high_speed_rail_paths = high_speed_rail.create()
+        # paths.extend(high_speed_rail_paths)
+        #
+        # print("Express Train:")
+        # express_train = ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+        # express_train_paths = express_train.create()
+        # paths.extend(express_train_paths)
+        #
+        # print("Bus:")
+        # bus = Bus(departure_time=start_date, start=departure_place, end=arrive_place)
+        # bus_paths = bus.create()
+        # paths.extend(bus_paths)
+        #
+        # print("Local Train:")
+        # local_train = LocalTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+        # local_train_paths = local_train.create()
+        # paths.extend(local_train_paths)
+        #
+        # print("High Speed Rail X Express Train:")
+        # high_speed_rail_express_train = HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        # high_speed_rail_x_express_train_paths = high_speed_rail_express_train.create()
+        # paths.extend(high_speed_rail_x_express_train_paths)
+        #
+        # print("Bus X Express Train:")
+        # bus_x_express_train = Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+        # bus_x_express_train_paths = bus_x_express_train.create()
+        # paths.extend(bus_x_express_train_paths)
+        #
+        # print("Bus X High Speed Rail X Express Train:")
+        # bus_x_high_speed_rail_x_express_train = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        # bus_x_express_train_x_high_speed_rail_paths = bus_x_high_speed_rail_x_express_train.create()
+        # paths.extend(bus_x_express_train_x_high_speed_rail_paths)
 
-        print("2.Express Train:")
-        express_train = ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
-        express_train_paths = express_train.create()
-        paths.extend(express_train_paths)
+        print("Local Train X High Speed Rail:")
+        local_train_x_high_speed_rail = LocalTrain_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        local_train_x_high_speed_rail_paths = local_train_x_high_speed_rail.create()
+        paths.extend(local_train_x_high_speed_rail_paths)
 
-        print("3.Bus:")
-        bus = Bus(departure_time=start_date, start=departure_place, end=arrive_place)
-        bus_paths = bus.create()
-        paths.extend(bus_paths)
+        print("Local Train X Express Train:")
+        local_train_x_express_train = LocalTrain_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+        local_train_x_express_train_paths = local_train_x_express_train.create()
+        paths.extend(local_train_x_express_train_paths)
 
-        print("4.High Speed Rail X Express Train:")
-        HighSpeedRail_X_ExpressTrain_paths = HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True).create()
-        paths.extend(HighSpeedRail_X_ExpressTrain_paths)
+        print("Local Train X Bus:")
+        local_train_x_bus = LocalTrain_X_Bus(departure_time=start_date, start=departure_place, end=arrive_place)
+        local_train_x_bus_paths = local_train_x_bus.create()
+        paths.extend(local_train_x_bus_paths)
 
-        print("5.Bus X Express Train:")
-        Bus_X_ExpressTrain_paths = Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place).create()
-        paths.extend(Bus_X_ExpressTrain_paths)
+        print("Local Train X High Speed Rail X Express Train:")
+        local_train_x_high_speed_rail_x_express_train = LocalTrain_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        local_train_x_high_speed_rail_x_express_train_paths = local_train_x_high_speed_rail_x_express_train.create()
+        paths.extend(local_train_x_high_speed_rail_x_express_train_paths)
 
-        print("6.Bus X Express Train X High Speed Rail:")
-        Bus_X_ExpressTrain_X_HighSpeedRail_paths = Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place,
-                                                                                      discount=False, reserved=True).create()
-        paths.extend(Bus_X_ExpressTrain_X_HighSpeedRail_paths)
+        print("Local Train X Bus X High Speed Rail:")
+        local_train_x_bus_x_high_speed_rail = LocalTrain_X_Bus_X_HighSpeedRail(departure_time=start_date, start=departure_place, end=arrive_place)
+        local_train_x_bus_x_high_speed_rail_paths = local_train_x_bus_x_high_speed_rail.create()
+        paths.extend(local_train_x_bus_x_high_speed_rail_paths)
+
+        print("Local Train X Bus X Express Train:")
+        local_train_x_bus_x_express_train = LocalTrain_X_Bus_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place)
+        local_train_x_bus_x_express_train_paths = local_train_x_bus_x_express_train.create()
+        paths.extend(local_train_x_bus_x_express_train_paths)
+
+        print("Local Train X Bus X High Speed Rail X Express Train:")
+        local_train_x_bus_x_high_speed_rail_x_express_train = LocalTrain_X_Bus_X_HighSpeedRail_X_ExpressTrain(departure_time=start_date, start=departure_place, end=arrive_place, discount=False, reserved=True)
+        local_train_x_bus_x_high_speed_rail_x_express_train_paths = local_train_x_bus_x_high_speed_rail_x_express_train.create()
+        paths.extend(local_train_x_bus_x_high_speed_rail_x_express_train_paths)
 
 
         self._simplify_paths(paths)
