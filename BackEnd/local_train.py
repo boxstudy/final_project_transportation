@@ -419,10 +419,12 @@ class LocalTrain(Transportation):
                     path_copies[2][i].update(train3)
                     path_copies[3][i].update(train4)
 
-                new_paths.extend(path_copies)
-
             # 最後重新設定 paths
             self.paths = new_paths
+
+        for i in range(len(self.paths) - 1, -1, -1):
+            if self.paths[i][-1]["transportation_name"] is None:
+                self.paths.pop(i)
 
 
 
@@ -610,7 +612,7 @@ class LocalTrain(Transportation):
                     conn.close()
                 distance = max(float(arrival_distance) - float(departure_distance), 10)
                 # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
-                transportation_name = route.get("transportation_name")
+                transportation_name = route["transportation_name"]
                 cost = 0
                 for name, rate in (("區間", 1.06), ("自強", 2.27)):
                     if name in transportation_name:

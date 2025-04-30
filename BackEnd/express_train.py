@@ -77,7 +77,7 @@ class ExpressTrain(Transportation):
         # 順時針
         clockwise_to_file = {"高雄": self.Caozhou_Jilong["to"], "臺北": self.Shulin_Taidong["to"], "臺東": self.Taidong_Xinzuoying["to"]}
         # 逆時針
-        counterclockwise_to_file = {"臺北": self.Caozhou_Jilong["to"], "臺東": self.Taidong_Xinzuoying["to"], "高雄": self.Taidong_Xinzuoying["to"]}
+        counterclockwise_to_file = {"臺北": self.Caozhou_Jilong["to"], "臺東": self.Shulin_Taidong["to"], "高雄": self.Taidong_Xinzuoying["to"]}
         file_to_start_end = {self.Caozhou_Jilong["to"]: ("高雄", "臺北"), self.Shulin_Taidong["to"]: ("臺北", "臺東"), self.Taidong_Xinzuoying["to"]: ("臺東", "高雄")}
         
         files1= self._find_table(self.start)
@@ -168,7 +168,10 @@ class ExpressTrain(Transportation):
                 if second_leg_fastest_train is not None:
                     l = copy.deepcopy(self.paths[0])
                     l[0].update(first_leg_fastest_train[i])
-                    l[1].update(second_leg_fastest_train[0])
+                    if second_leg_fastest_train:
+                        l[1].update(second_leg_fastest_train[0])
+                    else:
+                        l.pop(1)
                     self.paths.append(l)
             if self.paths:
                 self.paths.pop(0)
@@ -184,17 +187,20 @@ class ExpressTrain(Transportation):
             if first_leg_cheapest_train is not None and second_leg_cheapest_train is not None:
                 l = copy.deepcopy(self.paths[0])
                 l[0].update(first_leg_cheapest_train)
-                l[1].update(second_leg_cheapest_train)
+                if len(l) == 2:
+                    l[1].update(second_leg_cheapest_train)
 
             elif first_leg_cheapest_train is not None and second_leg_cheapest_train is None:
                 l = copy.deepcopy(self.paths[0])
                 l[0].update(first_leg_cheapest_train)
-                l[1].update(second_leg_fastest_train[0])
+                if len(l) == 2 and second_leg_fastest_train:
+                    l[1].update(second_leg_fastest_train[0])
                 self.paths.append(l)
             elif first_leg_cheapest_train is None and second_leg_cheapest_train is not None:
                 l = copy.deepcopy(self.paths[0])
                 l[0].update(first_leg_fastest_train[0])
-                l[1].update(second_leg_cheapest_train)
+                if len(l) == 2:
+                    l[1].update(second_leg_cheapest_train)
                 self.paths.append(l)
             else:
                 return None
