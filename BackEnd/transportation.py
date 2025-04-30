@@ -4,6 +4,7 @@ import traceback
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Union
+import statistics
 
 DATA_PATH = r"../data/"
 
@@ -301,14 +302,9 @@ class ComplexTransport(ABC):
         if not paths_record1 or not paths_record2:
             return []
 
-        # def func(x):
-        #     a = min(x[1], key=lambda y: y[-1]["arrival_time"])
-        #     print(a, '=====================================================================')
-        #     return a
-
-        min_record = min(paths_record1, key=lambda x: min(x[1], key=get_spend_path_minutes)[-1]["arrival_time"])
+        min_record = min(paths_record1, key=lambda x: statistics.mean(get_spend_path_minutes(item) for item in x[1]))
         start_i, _ = min_record
-        min_record = min(paths_record2, key=lambda x: min(x[1], key=get_spend_path_minutes)[-1]["arrival_time"])
+        min_record = min(paths_record2, key=lambda x: statistics.mean(get_spend_path_minutes(item) for item in x[1]))
         end_i, _ = min_record
 
         if start_i == end_i:
