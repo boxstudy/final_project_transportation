@@ -153,10 +153,11 @@ class HighSpeedRail(Transportation):
 
                 conn = get_db_connection(self.data_path + "價格.db")
                 cursor = conn.cursor()
+
                 try:
                     cursor.execute(f"""
                                     SELECT {a}
-                                    FROM {self.reserved_table}
+                                    FROM '{self.reserved_table}'
                                     WHERE 車站 in ('{b}')""")
                     records = cursor.fetchone()
                 finally:

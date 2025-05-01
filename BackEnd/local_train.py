@@ -422,9 +422,12 @@ class LocalTrain(Transportation):
             # 最後重新設定 paths
             self.paths = new_paths
 
+        # 刪除不完整的路線
         for i in range(len(self.paths) - 1, -1, -1):
-            if self.paths[i][-1]["transportation_name"] is None:
-                self.paths.pop(i)
+            for j in range(len(self.paths[i])):
+                if self.paths[i][j]["transportation_name"] is None:
+                    self.paths.pop(i)
+                    break
 
 
 
