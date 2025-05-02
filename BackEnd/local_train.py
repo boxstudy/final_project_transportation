@@ -159,7 +159,7 @@ class LocalTrain(Transportation):
             self.file0_5["from"], None, self.file2_5["from"], self.file3_5["from"], None,
             None, None, None, self.file8_5["from"])
 
-        "臺北 新竹 彰化 嘉義 高雄 枋寮 臺東 花蓮 蘇澳新 臺北"
+        # "臺北 新竹 彰化 嘉義 高雄 枋寮 臺東 花蓮 蘇澳新 臺北"
         # -> counter_clockwise
         # <- clockwise
         dis_main_line = (78.1, 104.5, 80.9, 108, 61.3, 98.2, 150.9, 79.2, 114.8)
@@ -636,7 +636,7 @@ class LocalTrain(Transportation):
                 # print(route["departure_place"], route["arrival_place"], distance, departure_distance, arrival_distance, route["file"])
                 transportation_name = route["transportation_name"]
                 cost = 0
-                for name, rate in (("區間", 1.06), ("自強", 2.27)):
+                for name, rate in (("區間", 1.06), ("自強", 2.27), ("莒光", 1.75)):
                     if name in transportation_name:
                         cost = rate * distance
                         break

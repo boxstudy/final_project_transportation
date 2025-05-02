@@ -287,11 +287,11 @@ class ComplexTransport(ABC):
                 if transportation2_paths:
                     paths.append(path + min(transportation2_paths, key=lambda x: x[-1]["arrival_time"]))
                 else:
-                    break
+                    return
 
-        if departure_place in transportation_a.stations:
+        if departure_place in transportation_a.stations and arrival_place in transportation_b.stations:
             transportation1_to_transportation2(transportation_a, transportation_b)
-        if departure_place in transportation_b.stations:
+        if departure_place in transportation_b.stations and arrival_place in transportation_a.stations:
             transportation1_to_transportation2(transportation_b, transportation_a)
         return paths
 

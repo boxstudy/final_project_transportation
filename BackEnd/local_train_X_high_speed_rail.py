@@ -17,12 +17,12 @@ class LocalTrain_X_HighSpeedRail(ComplexTransport):
         HighSpadeRail_transfer_points = ["板橋", "臺北", "高鐵臺中", "高鐵左營"]
 
         self.paths += super()._switch_by_transfer_points(departure_time=self.departure_time,
-                                                     departure_place=self.start,
-                                                     arrival_place=self.end,
-                                                     transportation_a=self.local_train,
-                                                     transportation_b=self.high_speed_rail,
-                                                     transfer_points_a=LocalTrain_transfer_points,
-                                                     transfer_points_b=HighSpadeRail_transfer_points)
+                                                         departure_place=self.start,
+                                                         arrival_place=self.end,
+                                                         transportation_a=self.local_train,
+                                                         transportation_b=self.high_speed_rail,
+                                                         transfer_points_a=LocalTrain_transfer_points,
+                                                         transfer_points_b=HighSpadeRail_transfer_points)
 
         self.paths += super()._insert_transportation(departure_time=self.departure_time,
                                                      departure_place=self.start,
