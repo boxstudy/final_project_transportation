@@ -3,14 +3,14 @@ import datetime
 
 
 class HighSpeedRail(Transportation):
-    Transportation.stations = {
+    stations = {
         "高鐵左警", "臺南", "嘉義", "雲林", "彰化", "高鐵臺中", "苗栗", "新竹", "桃園", "板橋", "臺北", "南港"
     }
 
     data_path = DATA_PATH + "High_Speed_Rail/"
 
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
-        super().__init__(departure_time, start, end)
+        super().__init__(departure_time, start, end, self.stations)
 
         self.discount = discount
         self.reserved_table = "reserved" if reserved is True else "non-reserved"

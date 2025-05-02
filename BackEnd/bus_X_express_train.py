@@ -4,9 +4,9 @@ from transportation import ComplexTransport
 
 
 class Bus_X_ExpressTrain(ComplexTransport):
-    ComplexTransport.stations = ExpressTrain.stations | Bus.stations
+    stations = ExpressTrain.stations | Bus.stations
     def __init__(self, departure_time, start, end):
-        super().__init__(departure_time, start, end)
+        super().__init__(departure_time, start, end, self.stations)
 
     def _create_bus_to_express_train(self):
         bus = Bus(self.departure_time, self.start, "花蓮")

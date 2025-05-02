@@ -6,25 +6,20 @@ from datetime import datetime, timedelta
 
 class Bus(Transportation):
     data_path = DATA_PATH + "Bus/"
-    Transportation.stations = {"東華大學", "花蓮"}
+    stations = {"東華大學", "花蓮"}
 
     def __init__(self, departure_time: str, start: str, end: str):
-        super().__init__(departure_time, start, end)
-
+        super().__init__(departure_time, start, end, self.stations)
 
 
     def _create_path(self):
-        if self.start not in self.stations:
-            raise TransportationError(f"Invalid start place {self.start}")
-        if self.end not in self.stations:
-            raise TransportationError(f"Invalid end place {self.end}")
 
         if self.start == "東華大學":
             file = "公車(往花蓮火車站).db"
         else:
             file = "公車(往東華大學).db"
 
-        self.paths = [[{"type": "Bus", "file": file, "departure_place": self.start,
+        self.paths = [[{"type": "Bus", "transportation_name": "Bus_301", "departure_time": "", "arrival_time": "",  "file": file, "departure_place": self.start,
                         "arrival_place": self.end}]]
 
     def _create_time(self):

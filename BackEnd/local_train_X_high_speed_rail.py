@@ -5,15 +5,13 @@ from local_train_X_express_train import LocalTrain_X_ExpressTrain
 from transportation import ComplexTransport
 
 class LocalTrain_X_HighSpeedRail(ComplexTransport):
-    ComplexTransport.stations = LocalTrain.stations | HighSpeedRail.stations
+    stations = LocalTrain.stations | HighSpeedRail.stations
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
-        super().__init__(departure_time, start, end)
+        super().__init__(departure_time, start, end, self.stations)
         self.local_train = LocalTrain("", "", "")
         self.high_speed_rail = HighSpeedRail("", "", "", discount, reserved)
 
     def _create(self):
-        if self.local_train.paths:
-            self.local_train.create()
 
         LocalTrain_transfer_points = ["板橋", "臺北", "新烏日", "新左營"]
         HighSpadeRail_transfer_points = ["板橋", "臺北", "高鐵臺中", "高鐵左營"]

@@ -24,8 +24,9 @@ class TransportationError(Exception):
         super().__init__(message)
 
 class Transportation(ABC):
-    stations = set()
-    def __init__(self, departure_time: str, start: str, end: str):
+
+    def __init__(self, departure_time: str, start: str, end: str, stations: set):
+        self.stations = stations
         self._reset(departure_time, start, end)
 
     def reinit(self, departure_time: str, start: str, end: str):
@@ -54,6 +55,10 @@ class Transportation(ABC):
         try:
             if self.start == self.end:
                 return self.paths
+            if self.start not in self.stations:
+                raise TransportationError(f"Invalid start {self.start}")
+            if self.end not in self.stations:
+                raise TransportationError(f"Invalid end {self.end}")
             self._create_path()
             self._create_time()
             self._create_cost()
@@ -69,8 +74,9 @@ class Transportation(ABC):
 
 
 class ComplexTransport(ABC):
-    stations = set()
-    def __init__(self, departure_time: str, start: str, end: str):
+
+    def __init__(self, departure_time: str, start: str, end: str, stations: set):
+        self.stations = stations
         self._reset(departure_time, start, end)
 
     def reinit(self, departure_time: str, start: str, end: str):
@@ -91,6 +97,10 @@ class ComplexTransport(ABC):
         try:
             if self.start == self.end:
                 return self.paths
+            if self.start not in self.stations:
+                raise TransportationError(f"Invalid start {self.start}")
+            if self.end not in self.stations:
+                raise TransportationError(f"Invalid end {self.end}")
             self._create()
         except TransportationError as e:
             self.paths = []
@@ -108,6 +118,8 @@ class ComplexTransport(ABC):
                               inner_transfer_points: list,
                               condition_src_files,
                               order_path_table_col):
+        if transportation_src.start in transportation_inner.stations and transportation_src.start in transportation_inner.stations:
+            return []
         select_num = 3  # 最多選幾班車
 
         if not transportation_src.paths:
@@ -239,6 +251,9 @@ class ComplexTransport(ABC):
                                    transfer_points_a: list,
                                    transfer_points_b: list
                                    ):
+        if (departure_place not in transportation_a.stations and arrival_place not in transportation_a.stations) \
+                or (departure_place not in transportation_b.stations and arrival_place not in transportation_b.stations):
+            return []
         transfer_point_i = 0
         import sys
         cost_time = sys.maxsize
@@ -266,16 +281,14 @@ class ComplexTransport(ABC):
         def transportation1_to_transportation2(transportation1, transportation2):
             transportation1 = transportation1.reinit(departure_time, departure_place, transfer_point_a)
             transportation1_path = transportation1.create()
-            if not transportation1_path:
-                return
             for path in transportation1_path:
                 transportation2 = transportation2.reinit(path[-1]["arrival_time"], transfer_point_b, arrival_place)
                 transportation2_paths = transportation2.create()
                 if transportation2_paths:
-                    try:
-                        paths.append(path + min(transportation2_paths, key=lambda x: x[-1]["arrival_time"]))
-                    except Exception as e:
-                        print(e)
+                    paths.append(path + min(transportation2_paths, key=lambda x: x[-1]["arrival_time"]))
+                else:
+                    break
+
         if departure_place in transportation_a.stations:
             transportation1_to_transportation2(transportation_a, transportation_b)
         if departure_place in transportation_b.stations:
@@ -298,6 +311,8 @@ class ComplexTransport(ABC):
                                                            end=point_src)
             if transportation_src.create():
                 paths_record1.append((i, transportation_src.paths))
+            else:
+                break
 
         paths_record2 = []
         for i, point_inner in enumerate(transfer_points_inner):
@@ -306,6 +321,8 @@ class ComplexTransport(ABC):
                                                                end=arrival_place)
             if transportation_inner.create():
                 paths_record2.append((i, transportation_inner.paths))
+            else:
+                break
 
         if not paths_record2:
             return []
@@ -326,6 +343,8 @@ class ComplexTransport(ABC):
                                                                end=transfer_points_inner[end_i])
             if transportation_inner.create():
                 paths2.append(path + min(transportation_inner.paths, key=lambda x: x[-1]["arrival_time"]))
+            else:
+                break
 
         paths3 = []
         for path in paths2:
@@ -334,6 +353,8 @@ class ComplexTransport(ABC):
                                                            end=arrival_place)
             if transportation_src.create():
                 paths3.append(path + min(transportation_src.paths, key=lambda x: x[-1]["arrival_time"]))
+            else:
+                break
         if not paths3:
             return []
 

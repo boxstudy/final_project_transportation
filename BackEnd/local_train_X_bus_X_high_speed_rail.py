@@ -3,9 +3,9 @@ from bus import Bus
 from transportation import ComplexTransport
 
 class LocalTrain_X_Bus_X_HighSpeedRail(ComplexTransport):
-    ComplexTransport.stations = LocalTrain_X_HighSpeedRail.stations | Bus.stations
+    stations = LocalTrain_X_HighSpeedRail.stations | Bus.stations
     def __init__(self, departure_time: str, start: str, end: str):
-        super().__init__(departure_time, start, end)
+        super().__init__(departure_time, start, end, self.stations)
         self.bus = Bus("", "", "")
         self.local_train_X_high_speed_rail = LocalTrain_X_HighSpeedRail("", "", "", discount=False, reserved=False)
 

@@ -12,20 +12,17 @@ from transportation import Transportation, get_db_connection, DATA_PATH, Transpo
      台東→枋寮→新左營 x 樹林→台東 : 臺東
 """
 class ExpressTrain(Transportation):
-    Transportation.stations = {
-        # 太魯閣號
-        "樹林", "板橋", "臺北", "松山", "南港", "七堵",
-        "宜蘭", "羅東", "新城", "花蓮", "吉安", "志學",
-        "壽豐", "鳳林", "光復", "瑞穗", "玉里", "富里",
-        "池上", "關山", "鹿野", "臺東", "知本",
-        # 普悠瑪號
-        "桃園", "中壢", "新竹", "竹南", "苗栗", "豐原",
-        "臺中", "彰化", "嘉義", "臺南", "新左營",
-        "高雄", "鳳山", "屏東", "潮州", "枋寮",
-        # 自強號（海線停靠站）
-        "大甲", "沙鹿", "後龍", "通霄", "苑裡", "清水", "大肚",
-        # 莒光號（含所有三等站以上，與上面列車高度重疊，故不再重複列出）
+    stations = {
+        "潮州", "西勢", "屏東", "九曲堂", "鳳山", "高雄", "新左營", "楠梓", "岡山", "路竹", "大湖", "臺南", "永康", "新市",
+        "善化", "隆田", "新營", "嘉義", "民雄", "大林", "斗南", "斗六", "林內", "二水", "田中", "社頭", "員林", "彰化",
+        "新烏日", "臺中", "潭子", "豐原", "后里", "三義", "銅鑼", "苗栗", "竹南", "新竹", "竹北", "新豐", "湖口", "楊梅",
+        "中壢", "桃園", "鶯歌", "樹林", "板橋", "萬華", "臺北", "松山", "南港", "汐止", "七堵", "八堵", "基隆",
+        "臺東", "鹿野", "瑞源", "關山", "池上", "富里", "東竹", "東里", "玉里", "瑞穗", "富源", "光復", "萬榮", "鳳林",
+        "南平", "林榮新光", "豐田", "壽豐", "志學", "吉安", "花蓮", "北埔", "新城", "和平", "南澳", "東澳", "蘇澳",
+        "蘇澳新", "冬山", "羅東", "宜蘭", "礁溪", "頭城", "福隆", "貢寮", "雙溪", "猴硐", "瑞芳",
+        "康樂", "知本", "太麻里", "金崙", "瀧溪", "大武", "枋山", "內獅", "加祿", "枋寮", "林邊", "南州"
     }
+
 
     Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
     Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
@@ -33,7 +30,7 @@ class ExpressTrain(Transportation):
     data_path = DATA_PATH + "Express_Train/"
 
     def __init__(self, departure_time: str, start: str, end: str):
-        super().__init__(departure_time, start, end)
+        super().__init__(departure_time, start, end, self.stations)
 
     def _count_distance(self, place1, place2, file):
         # print(f"place1: {place1}, place2: {place2}, file: {file}")
@@ -364,6 +361,54 @@ class ExpressTrain(Transportation):
                     raise TransportationError(f"transportation {transportation_name} not in 莒光, 自強 or 普悠瑪")
 
                 route.update({"cost": round(cost)})
+
+
+    def _get_up_and_down_station(self, station_name):
+        file_name = self._find_table(station_name).pop()
+        conn = get_db_connection(self.data_path + file_name)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT rowid FROM train WHERE 車站 = ?", (station_name,))
+            rowid = cursor.fetchone()[0]
+            cursor.execute("""
+                            SELECT 
+                                (SELECT 車站 FROM train WHERE rowid = ?),
+                                (SELECT 車站 FROM train WHERE rowid = ?)
+                            """, (rowid - 1, rowid + 1))
+            station1, station2 = cursor.fetchone()
+        finally:
+            cursor.close()
+            conn.close()
+
+        files = [self.Caozhou_Jilong["to"], self.Shulin_Taidong["to"], self.Taidong_Xinzuoying["to"]]
+        if not station1:
+            pre_i = files.index(file_name) - 1 % len(files)
+            conn = get_db_connection(self.data_path + files[pre_i])
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                                SELECT 車站 FROM train
+                                """)
+                station1 = cursor.fetchall()[-1][0]
+            finally:
+                cursor.close()
+                conn.close()
+        if not station2:
+            next_i = files.index(file_name) + 1 % len(files)
+            conn = get_db_connection(self.data_path + files[next_i])
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                                SELECT 車站 FROM train WHERE rowid = 1
+                                """)
+                station2 = cursor.fetchone()[0]
+            finally:
+                cursor.close()
+                conn.close()
+
+        return station1, station2
+
+
 
 
 if __name__ == "__main__":
