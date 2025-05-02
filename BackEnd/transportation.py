@@ -170,7 +170,6 @@ class ComplexTransport(ABC):
                 if len(record) < 3:
                     continue
 
-                # 如果都在 "板橋" 往北，"新左營" 往南，則不考慮，
                 if record[1] == part['arrival_place'] or record[-2] == part['departure_place']:
                     continue
 
@@ -215,9 +214,6 @@ class ComplexTransport(ABC):
                     if part['departure_place'] != record[m]:
                         list1 = min(list1, key=get_spend_path_minutes)
 
-                    # print("m, n", m, n)
-                    # print("record", record)
-
                     list2 = transportation_inner.reinit(departure_time=list1[-1]['arrival_time'],
                                                         start=inner_transfer_points[src_transfer_points.index(record[m])],
                                                         end=inner_transfer_points[src_transfer_points.index(record[n])]).create()
@@ -251,48 +247,51 @@ class ComplexTransport(ABC):
                                    transfer_points_a: list,
                                    transfer_points_b: list
                                    ):
-        if (departure_place not in transportation_a.stations and arrival_place not in transportation_a.stations) \
-                or (departure_place not in transportation_b.stations and arrival_place not in transportation_b.stations):
-            return []
-        transfer_point_i = 0
-        import sys
-        cost_time = sys.maxsize
-        for i in range(len(transfer_points_a)):
-            path_a = transportation_a.reinit(departure_time=departure_time, start=departure_place, end=transfer_points_a[i]).create()
-            if not path_a:
-                continue
-            path_a = min(path_a, key=get_spend_path_minutes)
-
-            path_b = transportation_b.reinit(departure_time=path_a[-1]['arrival_time'], start=transfer_points_b[i], end=arrival_place).create()
-            if not path_b:
-                continue
-            path_b = min(path_b, key=get_spend_path_minutes)
-
-            cost_time_tmp = get_spend_path_minutes(path_a + path_b)
-            if cost_time_tmp < cost_time:
-                cost_time = cost_time_tmp
-                transfer_point_i = i
-
-        transfer_point_a = transfer_points_a[transfer_point_i]
-        transfer_point_b = transfer_points_b[transfer_point_i]
-
         paths = []
 
-        def transportation1_to_transportation2(transportation1, transportation2):
-            transportation1 = transportation1.reinit(departure_time, departure_place, transfer_point_a)
-            transportation1_path = transportation1.create()
-            for path in transportation1_path:
-                transportation2 = transportation2.reinit(path[-1]["arrival_time"], transfer_point_b, arrival_place)
-                transportation2_paths = transportation2.create()
+        def t1_to_t2(t1, t2, t1_transfer_points, t2_transfer_points):
+            import sys
+            cost_time = sys.maxsize
+            transfer_point_i = 0
+            best_paths = None
+            for i in range(len(transfer_points_a)):
+                t1_paths = t1.reinit(departure_time=departure_time,
+                                     start=departure_place,
+                                     end=t1_transfer_points[i]).create()
+                if not t1_paths:
+                    continue
+                t1_path = min(t1_paths, key=get_spend_path_minutes)
+
+                t2_paths = t2.reinit(departure_time=t1_path[-1]['arrival_time'],
+                                     start=t2_transfer_points[i],
+                                     end=arrival_place).create()
+                if not t2_paths:
+                    continue
+                t2_path = min(t2_paths, key=get_spend_path_minutes)
+
+                cost_time_tmp = get_spend_path_minutes(t1_path + t2_path)
+                if cost_time_tmp < cost_time:
+                    cost_time = cost_time_tmp
+                    transfer_point_i = i
+                    best_paths = t2_paths
+
+            if not best_paths:
+                return
+
+            transfer_point_b = transfer_points_b[transfer_point_i]
+            for path in best_paths:
+                transportation2_paths = t2.reinit(path[-1]["arrival_time"], transfer_point_b, arrival_place).create()
                 if transportation2_paths:
                     paths.append(path + min(transportation2_paths, key=lambda x: x[-1]["arrival_time"]))
                 else:
-                    return
+                    break
 
         if departure_place in transportation_a.stations and arrival_place in transportation_b.stations:
-            transportation1_to_transportation2(transportation_a, transportation_b)
+            t1_to_t2(transportation_a, transportation_b, transfer_points_a, transfer_points_b)
+
         if departure_place in transportation_b.stations and arrival_place in transportation_a.stations:
-            transportation1_to_transportation2(transportation_b, transportation_a)
+            t1_to_t2(transportation_b, transportation_a, transfer_points_b, transfer_points_a)
+
         return paths
 
     @staticmethod
