@@ -4,6 +4,7 @@ from high_speed_rail import HighSpeedRail
 from transportation import ComplexTransport
 
 class Bus_X_HighSpeedRail_X_ExpressTrain(ComplexTransport):
+    ComplexTransport.stations = Bus_X_ExpressTrain.stations | HighSpeedRail.stations
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end)
         self.high_speed_rail = HighSpeedRail("", "", "", discount, reserved)

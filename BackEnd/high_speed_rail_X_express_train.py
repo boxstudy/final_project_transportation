@@ -3,6 +3,7 @@ from high_speed_rail import HighSpeedRail
 from express_train import ExpressTrain
 
 class HighSpeedRail_X_ExpressTrain(ComplexTransport):
+    ComplexTransport.stations = HighSpeedRail.stations | ExpressTrain.stations
     def __init__(self, departure_time: str, start: str, end: str, discount: bool, reserved: bool):
         super().__init__(departure_time, start, end)
         self.discount = discount

@@ -3,14 +3,13 @@ from express_train import ExpressTrain
 from transportation import ComplexTransport
 
 class LocalTrain_X_ExpressTrain(ComplexTransport):
+    ComplexTransport.stations = LocalTrain.stations | ExpressTrain.stations
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end)
         self.local_train = LocalTrain("", "", "")
         self.express_train = ExpressTrain("", "", "")
 
     def _create(self):
-        if self.local_train.paths:
-            self.local_train.create()
 
         LocalTrain_transfer_points = ['七堵', '中壢', '光復', '南港', '吉安', '嘉義', '壽豐', '大甲', '宜蘭', '富里', '屏東', '彰化', '後龍', '志學', '新城', '新左營', '新竹', '松山', '板橋', '枋寮', '桃園', '樹林', '池上', '沙鹿', '清水', '潮州', '玉里', '瑞穗', '知本', '竹南', '羅東', '臺中', '臺北', '臺南', '臺東', '花蓮', '苑裡', '苗栗', '豐原', '通霄', '關山', '高雄', '鳳山', '鳳林', '鹿野']
         ExpressTrain_transfer_points = ['七堵', '中壢', '光復', '南港', '吉安', '嘉義', '壽豐', '大甲', '宜蘭', '富里', '屏東', '彰化', '後龍', '志學', '新城', '新左營', '新竹', '松山', '板橋', '枋寮', '桃園', '樹林', '池上', '沙鹿', '清水', '潮州', '玉里', '瑞穗', '知本', '竹南', '羅東', '臺中', '臺北', '臺南', '臺東', '花蓮', '苑裡', '苗栗', '豐原', '通霄', '關山', '高雄', '鳳山', '鳳林', '鹿野']

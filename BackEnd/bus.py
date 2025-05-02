@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 class Bus(Transportation):
     data_path = DATA_PATH + "Bus/"
+    Transportation.stations = {"東華大學", "花蓮"}
 
     def __init__(self, departure_time: str, start: str, end: str):
         super().__init__(departure_time, start, end)
@@ -13,10 +14,9 @@ class Bus(Transportation):
 
 
     def _create_path(self):
-        station = ["東華大學", "花蓮"]
-        if self.start not in station:
+        if self.start not in self.stations:
             raise TransportationError(f"Invalid start place {self.start}")
-        if self.end not in station:
+        if self.end not in self.stations:
             raise TransportationError(f"Invalid end place {self.end}")
 
         if self.start == "東華大學":
@@ -64,6 +64,10 @@ class Bus(Transportation):
                 # 更新路徑資訊
                 self.paths[i][0].update(
                     {"departure_time": formatted_departure_time, "arrival_time": formatted_arrival_time})
+
+            else:
+                self.paths = self.paths[:i]
+                break
 
     def _create_cost(self):
         for i in range(len(self.paths)):

@@ -3,6 +3,9 @@ import datetime
 
 
 class HighSpeedRail(Transportation):
+    Transportation.stations = {
+        "高鐵左警", "臺南", "嘉義", "雲林", "彰化", "高鐵臺中", "苗栗", "新竹", "桃園", "板橋", "臺北", "南港"
+    }
 
     data_path = DATA_PATH + "High_Speed_Rail/"
 

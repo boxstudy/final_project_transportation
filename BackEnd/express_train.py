@@ -12,6 +12,20 @@ from transportation import Transportation, get_db_connection, DATA_PATH, Transpo
      台東→枋寮→新左營 x 樹林→台東 : 臺東
 """
 class ExpressTrain(Transportation):
+    Transportation.stations = {
+        # 太魯閣號
+        "樹林", "板橋", "臺北", "松山", "南港", "七堵",
+        "宜蘭", "羅東", "新城", "花蓮", "吉安", "志學",
+        "壽豐", "鳳林", "光復", "瑞穗", "玉里", "富里",
+        "池上", "關山", "鹿野", "臺東", "知本",
+        # 普悠瑪號
+        "桃園", "中壢", "新竹", "竹南", "苗栗", "豐原",
+        "臺中", "彰化", "嘉義", "臺南", "新左營",
+        "高雄", "鳳山", "屏東", "潮州", "枋寮",
+        # 自強號（海線停靠站）
+        "大甲", "沙鹿", "後龍", "通霄", "苑裡", "清水", "大肚",
+        # 莒光號（含所有三等站以上，與上面列車高度重疊，故不再重複列出）
+    }
 
     Caozhou_Jilong = {"to": "西部往北（潮州→基隆）.db", "from": "西部往南（基隆→潮州).db"}
     Shulin_Taidong = {"to": "東部往南（樹林→臺東).db", "from": "東部往北（臺東→樹林）.db"}
@@ -175,6 +189,8 @@ class ExpressTrain(Transportation):
                     self.paths.append(l)
             if self.paths:
                 self.paths.pop(0)
+            if not self.paths:
+                return
 
             # 取得所有可銜接的第二段列車(最便宜)
             if first_leg_cheapest_train is None:
