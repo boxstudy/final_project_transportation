@@ -382,7 +382,7 @@ class ExpressTrain(Transportation):
 
         files = [self.Caozhou_Jilong["to"], self.Shulin_Taidong["to"], self.Taidong_Xinzuoying["to"]]
         if not station1:
-            pre_i = files.index(file_name) - 1 % len(files)
+            pre_i = (files.index(file_name) - 1) % len(files)
             conn = get_db_connection(self.data_path + files[pre_i])
             cursor = conn.cursor()
             try:
@@ -394,7 +394,7 @@ class ExpressTrain(Transportation):
                 cursor.close()
                 conn.close()
         if not station2:
-            next_i = files.index(file_name) + 1 % len(files)
+            next_i = (files.index(file_name) + 1) % len(files)
             conn = get_db_connection(self.data_path + files[next_i])
             cursor = conn.cursor()
             try:
