@@ -29,11 +29,11 @@ class HighSpeedRail(Transportation):
         finally:
             cursor.close()
             conn.close()
-        i = 0
-        for _ in records:
-            i += 1
-        if i < 2:
-            raise TransportationError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
+        # i = 0
+        # for _ in records:
+        #     i += 1
+        # if i < 2:
+        #     raise TransportationError(f"Cannot find a valid route from {start_station} to {end_station} in {file}")
         return records[0][0] == start_station
 
     def _create_path(self):
@@ -123,24 +123,18 @@ class HighSpeedRail(Transportation):
                                 if train_arrival_dt.strftime("%H") == "00":
                                     format_arrival_time += datetime.timedelta(days=1)
 
-                                # 轉換為字串格式
-                                selected_train = train_no
-                                selected_departure_time = format_departure_time.strftime("%Y-%m-%d %H:%M")
-                                selected_arrival_time = format_arrival_time.strftime("%Y-%m-%d %H:%M")
-
                                 # 更新路徑資訊
-                                if selected_train:
+                                if train_no:
                                     route.update({
-                                        "train_number": selected_train,
-                                        "departure_time": selected_departure_time,
-                                        "arrival_time": selected_arrival_time
+                                        "train_number": train_no,
+                                        "departure_time": format_departure_time.strftime("%Y-%m-%d %H:%M"),
+                                        "arrival_time": format_arrival_time.strftime("%Y-%m-%d %H:%M")
                                     })
-                                    self.paths[0][0].update({"train_number": selected_train})
+                                    self.paths[0][0].update({"train_number": train_no})
 
                                 break  # 找到第一個符合條件的班次就結束
 
-                            # except ValueError:
-                            #     continue  # 如果時間格式錯誤，跳過該班車
+
 
 
     def _create_cost(self):
