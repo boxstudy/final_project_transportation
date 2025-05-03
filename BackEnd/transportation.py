@@ -273,7 +273,7 @@ class ComplexTransport(ABC):
                 if cost_time_tmp < cost_time:
                     cost_time = cost_time_tmp
                     transfer_point_i = i
-                    best_paths = t2_paths
+                    best_paths = t1_paths
 
             if not best_paths:
                 return
