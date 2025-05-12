@@ -4,215 +4,181 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".FirstFragment">
 
-    <!-- App 標題列 -->
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:padding="0dp">
+        android:background="@android:color/white"
+        android:padding="16dp">
 
-
-        <!-- 左側圖標 -->
-
-        <!-- App 標題 -->
-
-        <!-- 右側設定按鈕 -->
 
         <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="69dp"
-            android:layout_height="56dp"
-            android:src="@drawable/alex"
+            android:id="@+id/app_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/appicon"
+            android:contentDescription="App Logo"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
 
         <TextView
             android:id="@+id/textView2"
-            android:layout_width="265dp"
-            android:layout_height="56dp"
-            android:text="CommuteCalc"
-            android:textSize="48sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- 位置輸入區域 -->
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@android:color/white"
-        android:elevation="2dp"
-        android:gravity="center_vertical">
-
-        <Spinner
-            android:id="@+id/spinner4"
-            android:layout_width="85dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="30dp"
-            android:entries="@array/minute_list"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/spinner3"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-        <EditText
-            android:id="@+id/spinner"
-            android:layout_width="380dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintStart_toStartOf="@+id/textView4"
-            app:layout_constraintTop_toBottomOf="@+id/textView3"
-            android:hint="請輸入站名"
-            android:inputType="text"/>
-
-        <EditText
-            android:id="@+id/spinner2"
-            android:layout_width="380dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintStart_toStartOf="@+id/imageView4"
-            app:layout_constraintTop_toBottomOf="@+id/textView4"
-            android:hint="請輸入站名"
-            android:inputType="text"/>
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/Start_hint"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="@+id/spinner"
-            app:layout_constraintTop_toBottomOf="@+id/imageView3" />
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/End_hint"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="@+id/spinner2"
-            app:layout_constraintTop_toBottomOf="@+id/spinner" />
-
-        <TextView
-            android:id="@+id/textView5"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/Departing_time_hint"
-            android:textSize="24sp"
-            app:layout_constraintTop_toBottomOf="@+id/imageView4" />
-
-        <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="39dp"
-            android:layout_height="37dp"
-            app:layout_constraintStart_toStartOf="@+id/textView3"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/location" />
-
-        <ImageView
-            android:id="@+id/imageView4"
-            android:layout_width="45dp"
-            android:layout_height="41dp"
-            android:layout_marginTop="10dp"
-            app:layout_constraintStart_toStartOf="@+id/textView5"
-            app:layout_constraintTop_toBottomOf="@+id/spinner2"
-            app:srcCompat="@drawable/clock" />
-
-        <TextView
-            android:id="@+id/selected_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="選擇日期"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-        <ImageButton
-            android:id="@+id/pickDateImageButton"
-            android:layout_width="37dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/baseline_access_time_filled_24"
-            app:layout_constraintStart_toEndOf="@+id/selected_date"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-        <Spinner
-            android:id="@+id/spinner3"
-            android:layout_width="85dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="30dp"
-            android:entries="@array/hour_list"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/spinner4"
-            app:layout_constraintStart_toEndOf="@+id/pickDateImageButton"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="30dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="10dp"
-            android:text="時"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/spinner4"
-            app:layout_constraintStart_toEndOf="@+id/spinner3"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
-        <TextView
-            android:id="@+id/textView16"
-            android:layout_width="30dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="分"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/spinner4"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
-
+            android:text="路在東華"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/purple"
+            app:layout_constraintStart_toEndOf="@id/app_logo"
+            app:layout_constraintTop_toTopOf="@id/app_logo"
+            app:layout_constraintBottom_toBottomOf="@id/app_logo"
+            android:layout_marginStart="12dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 按鈕 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/form_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardUseCompatPadding="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="起點"
+                android:textSize="18sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/start_seletor"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/selector_background"
+                android:drawableEnd="@drawable/ic_arrow_drop_down"
+                android:hint="請選擇車站"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:clickable="true"
+                android:focusable="false"
+                app:layout_constraintTop_toBottomOf="@id/textView3"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="終點"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/start_seletor"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/end_seletor"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/selector_background"
+                android:drawableEnd="@drawable/ic_arrow_drop_down"
+                android:hint="請選擇車站"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:clickable="true"
+                android:focusable="false"
+                app:layout_constraintTop_toBottomOf="@id/textView4"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="出發時間"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/end_seletor"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/textView5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <ImageButton
+                    android:id="@+id/pickDateImageButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/event"
+                    android:contentDescription="選擇日期" />
+
+                <TextView
+                    android:id="@+id/time_text"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="選擇日期"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/pickDateImageButton2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_clock"
+                    android:contentDescription="選擇時間" />
+
+                <TextView
+                    android:id="@+id/editTextText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:text="選擇時間"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
     <Button
         android:id="@+id/btn_set_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:backgroundTint="@color/purple"
-        android:text="@string/search_buttom"
+        android:text="搜尋路線"
         android:textColor="@android:color/white"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/textView17"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Button" />
-
+        android:textSize="18sp" />
 </LinearLayout>
